@@ -182,7 +182,7 @@ private fun daySlotsContainsMeal(
     grid: List<DayMeals>,
     day: Int,
     mealPosition: String,
-    recipeName: String
+    recipeName: String?
 ): Boolean {
     val targetDay = grid.find { it.dayOfWeek == day } ?: return false
     val idx = if (mealPosition == "lunch") 0 else 1
