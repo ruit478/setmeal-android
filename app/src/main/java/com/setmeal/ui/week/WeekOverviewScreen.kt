@@ -1,6 +1,5 @@
 package com.setmeal.ui.week
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -15,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
@@ -35,6 +33,15 @@ fun WeekOverviewScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    // State for move dialog
+    var mealToMove by remember { mutableStateOf<WeekSummary?>(null) }
+
+    // Derive work days from grid
+    val workDays = remember(weekGrid) {
+        weekGrid.filter { it.meals.any { m -> m.slotType == "work" } }
+            .map { it.dayOfWeek }.toSet()
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -68,7 +75,6 @@ fun WeekOverviewScreen(
             }
 
             if (!hasPlan) {
-                // ── Empty state ──
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -104,15 +110,8 @@ fun WeekOverviewScreen(
                             onMealClick = { summary ->
                                 when (summary.slotType) {
                                     null -> onNavigateToOverride()
-                                    "work" -> {} // work slots are non-interactive
-                                    else -> {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                message = summary.recipeName ?: "Meal",
-                                                duration = SnackbarDuration.Short
-                                            )
-                                        }
-                                    }
+                                    "work" -> {}
+                                    else -> mealToMove = summary
                                 }
                             }
                         )
@@ -134,7 +133,7 @@ fun WeekOverviewScreen(
                     }
 
                     OutlinedButton(
-                        onClick = { viewModel.resetToCurrentWeek() },
+                        onClick = { viewModel.resetPlan() },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Reset")
@@ -143,6 +142,140 @@ fun WeekOverviewScreen(
             }
         }
     }
+
+    // ── Move meal dialog ──
+    mealToMove?.let { summary ->
+        MoveMealDialog(
+            recipeName = summary.recipeName ?: "Meal",
+            sourceDay = summary.dayOfWeek,
+            sourceMeal = if (daySlotsContainsMeal(weekGrid, summary.dayOfWeek, "lunch", summary.recipeName)) "lunch" else "dinner",
+            workDays = workDays,
+            onDismiss = { mealToMove = null },
+            onConfirm = { targetDay, targetMeal ->
+                val sourceMeal = if (daySlotsContainsMeal(weekGrid, summary.dayOfWeek, "lunch", summary.recipeName)) "lunch" else "dinner"
+                if (summary.slotId != null) {
+                    viewModel.moveMeal(
+                        slotId = summary.slotId,
+                        sourceDay = summary.dayOfWeek,
+                        sourceMeal = sourceMeal,
+                        targetDay = targetDay,
+                        targetMeal = targetMeal
+                    )
+                }
+                mealToMove = null
+                if (targetDay == summary.dayOfWeek && targetMeal == sourceMeal) {
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Already there",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            }
+        )
+    }
+}
+
+/** Figure out if a meal slot on a given day is in lunch or dinner position. */
+private fun daySlotsContainsMeal(
+    grid: List<DayMeals>,
+    day: Int,
+    mealPosition: String,
+    recipeName: String
+): Boolean {
+    val targetDay = grid.find { it.dayOfWeek == day } ?: return false
+    val idx = if (mealPosition == "lunch") 0 else 1
+    return targetDay.meals.getOrNull(idx)?.recipeName == recipeName
+}
+
+// ── Move Meal Dialog ─────────────────────────────────────────────
+
+@Composable
+private fun MoveMealDialog(
+    recipeName: String,
+    sourceDay: Int,
+    sourceMeal: String,
+    workDays: Set<Int>,
+    onDismiss: () -> Unit,
+    onConfirm: (targetDay: Int, targetMeal: String) -> Unit
+) {
+    val dayNames = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    var selectedDay by remember { mutableStateOf(sourceDay) }
+    var selectedMeal by remember { mutableStateOf(sourceMeal) }
+
+    // Lunch is only available for non-work days
+    val mealOptions = if (selectedDay in workDays) listOf("dinner") else listOf("lunch", "dinner")
+
+    // Reset meal to dinner if day is a work day and currently lunch
+    LaunchedEffect(selectedDay) {
+        if (selectedDay in workDays && selectedMeal == "lunch") {
+            selectedMeal = "dinner"
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Move $recipeName",
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Day selector
+                Text("Day", style = MaterialTheme.typography.labelLarge)
+                dayNames.forEachIndexed { index, name ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        RadioButton(
+                            selected = selectedDay == index,
+                            onClick = { selectedDay = index }
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.clickable { selectedDay = index }
+                        )
+                    }
+                }
+
+                HorizontalDivider()
+
+                // Meal time selector
+                Text("Meal", style = MaterialTheme.typography.labelLarge)
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    mealOptions.forEach { meal ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = selectedMeal == meal,
+                                onClick = { selectedMeal = meal }
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = meal.replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.clickable { selectedMeal = meal }
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selectedDay, selectedMeal) }) {
+                Text("Move")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 // ── Day card ─────────────────────────────────────────────────────
@@ -198,7 +331,7 @@ private fun MealRow(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        onClick = { if (!isWork && !isEmpty) onClick() else if (isEmpty) onClick() },
+        onClick = { if (!isWork) onClick() },
         shape = RoundedCornerShape(8.dp),
         color = bgColor
     ) {

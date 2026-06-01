@@ -16,6 +16,7 @@ import javax.inject.Inject
 
 data class WeekSummary(
     val dayOfWeek: Int,
+    val slotId: String?,
     val recipeId: String?,
     val recipeName: String?,
     val slotType: String?
@@ -76,6 +77,7 @@ class WeekViewModel @Inject constructor(
                     mealNames.add(
                         WeekSummary(
                             dayOfWeek = day,
+                            slotId = null,
                             recipeId = null,
                             recipeName = "Work",
                             slotType = "work"
@@ -85,6 +87,7 @@ class WeekViewModel @Inject constructor(
                     mealNames.add(
                         WeekSummary(
                             dayOfWeek = day,
+                            slotId = lunch?.id,
                             recipeId = lunch?.recipeId,
                             recipeName = lunch?.recipeName,
                             slotType = lunch?.slotType
@@ -95,6 +98,7 @@ class WeekViewModel @Inject constructor(
                 mealNames.add(
                     WeekSummary(
                         dayOfWeek = day,
+                        slotId = dinner?.id,
                         recipeId = dinner?.recipeId,
                         recipeName = dinner?.recipeName,
                         slotType = dinner?.slotType
@@ -111,6 +115,46 @@ class WeekViewModel @Inject constructor(
 
     fun nextWeek() {
         _currentWeekStart.value = _currentWeekStart.value.plusWeeks(1)
+    }
+
+    /** Clear all slots for the current plan. */
+    fun resetPlan() {
+        viewModelScope.launch {
+            val plan = currentPlan.first() ?: return@launch
+            weeklyPlanDao.deleteSlotsForPlan(plan.id)
+        }
+    }
+
+    /**
+     * Move a meal slot to a new (day, mealTime) position.
+     * If the target position is occupied, the two slots swap positions.
+     * Moving to a work day lunch is rejected (work days have no lunch).
+     */
+    fun moveMeal(
+        slotId: String,
+        sourceDay: Int,
+        sourceMeal: String,
+        targetDay: Int,
+        targetMeal: String
+    ) {
+        viewModelScope.launch {
+            val plan = currentPlan.first() ?: return@launch
+
+            // Reject work-day lunch moves
+            val existingDinner = weeklyPlanDao.getSlot(plan.id, targetDay, "dinner")
+            val existingLunch = weeklyPlanDao.getSlot(plan.id, targetDay, "lunch")
+            val isWorkDay = existingDinner != null && existingLunch == null
+            if (isWorkDay && targetMeal == "lunch") return@launch
+
+            // Check if target is occupied
+            val targetSlot = weeklyPlanDao.getSlot(plan.id, targetDay, targetMeal)
+            if (targetSlot != null) {
+                // Swap: move target slot to source position
+                weeklyPlanDao.updateSlotPosition(targetSlot.id, sourceDay, sourceMeal)
+            }
+            // Move source slot to target position
+            weeklyPlanDao.updateSlotPosition(slotId, targetDay, targetMeal)
+        }
     }
 
     fun resetToCurrentWeek() {

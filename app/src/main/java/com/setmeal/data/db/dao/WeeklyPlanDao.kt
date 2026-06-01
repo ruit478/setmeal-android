@@ -34,6 +34,12 @@ interface WeeklyPlanDao {
     @Delete
     suspend fun deletePlan(plan: WeeklyPlanEntity)
 
+    @Query("SELECT * FROM slots WHERE planId = :planId AND dayOfWeek = :dayOfWeek AND mealTime = :mealTime LIMIT 1")
+    suspend fun getSlot(planId: String, dayOfWeek: Int, mealTime: String): SlotEntity?
+
+    @Query("UPDATE slots SET dayOfWeek = :newDay, mealTime = :newMealTime WHERE id = :slotId")
+    suspend fun updateSlotPosition(slotId: String, newDay: Int, newMealTime: String)
+
     @Query("DELETE FROM slots WHERE planId = :planId")
     suspend fun deleteSlotsForPlan(planId: String)
 
