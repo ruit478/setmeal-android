@@ -64,21 +64,34 @@ class WeekViewModel @Inject constructor(
                 val daySlots = slots.filter { it.dayOfWeek == day }
                     .sortedBy { if (it.mealTime == "lunch") 0 else 1 }
 
-                // Enforce exactly 2 display entries per day (fill empty if missing)
                 val mealNames = mutableListOf<WeekSummary>()
                 val lunch = daySlots.find { it.mealTime == "lunch" }
                 val dinner = daySlots.find { it.mealTime == "dinner" }
 
-                // Lunch slot (or empty)
-                mealNames.add(
-                    WeekSummary(
-                        dayOfWeek = day,
-                        recipeId = lunch?.recipeId,
-                        recipeName = lunch?.recipeName,
-                        slotType = lunch?.slotType
+                // Detect work day: has dinner but no lunch on that day
+                val isWorkDay = dinner != null && lunch == null
+
+                // First slot — lunch or "Work" if work day, or empty
+                if (isWorkDay) {
+                    mealNames.add(
+                        WeekSummary(
+                            dayOfWeek = day,
+                            recipeId = null,
+                            recipeName = "Work",
+                            slotType = "work"
+                        )
                     )
-                )
-                // Dinner slot (or empty)
+                } else {
+                    mealNames.add(
+                        WeekSummary(
+                            dayOfWeek = day,
+                            recipeId = lunch?.recipeId,
+                            recipeName = lunch?.recipeName,
+                            slotType = lunch?.slotType
+                        )
+                    )
+                }
+                // Second slot — dinner (or empty)
                 mealNames.add(
                     WeekSummary(
                         dayOfWeek = day,

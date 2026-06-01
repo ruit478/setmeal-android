@@ -102,14 +102,16 @@ fun WeekOverviewScreen(
                             dayLabel = dayLabels[dayIndex],
                             meals = dayMeals.meals,
                             onMealClick = { summary ->
-                                if (summary.slotType == null) {
-                                    onNavigateToOverride()
-                                } else {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(
-                                            message = summary.recipeName ?: "Meal",
-                                            duration = SnackbarDuration.Short
-                                        )
+                                when (summary.slotType) {
+                                    null -> onNavigateToOverride()
+                                    "work" -> {} // work slots are non-interactive
+                                    else -> {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(
+                                                message = summary.recipeName ?: "Meal",
+                                                duration = SnackbarDuration.Short
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -181,14 +183,22 @@ private fun MealRow(
     onClick: () -> Unit
 ) {
     val isEmpty = summary.slotType == null
-    val bgColor = if (isEmpty)
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-    else
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+    val isWork = summary.slotType == "work"
+    val bgColor = when {
+        isWork -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.15f)
+        isEmpty -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        else -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+    }
+
+    val displayText = when {
+        isWork -> "Work"
+        isEmpty -> "—"
+        else -> (summary.recipeName ?: "")
+    }
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        onClick = onClick,
+        onClick = { if (!isWork && !isEmpty) onClick() else if (isEmpty) onClick() },
         shape = RoundedCornerShape(8.dp),
         color = bgColor
     ) {
@@ -200,23 +210,27 @@ private fun MealRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (isEmpty) "—" else (summary.recipeName ?: ""),
+                text = displayText,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (isEmpty)
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                else
-                    MaterialTheme.colorScheme.onSurface,
+                color = when {
+                    isWork -> MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                    isEmpty -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    else -> MaterialTheme.colorScheme.onSurface
+                },
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
-            if (isEmpty) {
-                Text(
-                    text = "+",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
+            when {
+                isWork -> {}
+                isEmpty -> {
+                    Text(
+                        text = "+",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
