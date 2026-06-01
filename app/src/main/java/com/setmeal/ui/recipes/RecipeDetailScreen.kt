@@ -43,8 +43,8 @@ fun RecipeDetailScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (uiState.isEditing) "Editar Refeição"
-                        else uiState.recipe?.name ?: "Refeição"
+                        if (uiState.isEditing) "Edit Recipe"
+                        else uiState.recipe?.name ?: "Recipe"
                     )
                 },
                 navigationIcon = {
@@ -52,23 +52,23 @@ fun RecipeDetailScreen(
                         if (uiState.isEditing) viewModel.cancelEditing()
                         else navController.popBackStack()
                     }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
                     if (uiState.recipe != null && !uiState.isLoading) {
                         if (uiState.isEditing) {
                             TextButton(onClick = { viewModel.saveEdits() }) {
-                                Text("Guardar")
+                                Text("Save")
                             }
                         } else {
                             IconButton(onClick = { viewModel.startEditing() }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Editar")
+                                Icon(Icons.Default.Edit, contentDescription = "Edit")
                             }
                             IconButton(onClick = { viewModel.showDeleteDialog() }) {
                                 Icon(
                                     Icons.Default.Delete,
-                                    contentDescription = "Eliminar",
+                                    contentDescription = "Delete",
                                     tint = MaterialTheme.colorScheme.error
                                 )
                             }
@@ -98,7 +98,7 @@ fun RecipeDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = uiState.error ?: "Refeição não encontrada",
+                        text = uiState.error ?: "Recipe not found",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.error
                     )
@@ -133,9 +133,9 @@ fun RecipeDetailScreen(
     if (uiState.showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissDeleteDialog() },
-            title = { Text("Eliminar Refeição") },
+            title = { Text("Delete Recipe") },
             text = {
-                Text("Tens a certeza que queres eliminar \"${uiState.recipe?.name}\"? Esta ação não pode ser desfeita.")
+                Text("Are you sure you want to delete \"${uiState.recipe?.name}\"? This action cannot be undone.")
             },
             confirmButton = {
                 Button(
@@ -144,12 +144,12 @@ fun RecipeDetailScreen(
                         containerColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Eliminar")
+                    Text("Delete")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissDeleteDialog() }) {
-                    Text("Cancelar")
+                    Text("Cancel")
                 }
             }
         )
@@ -203,13 +203,13 @@ private fun ViewMode(
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    text = "Cozinhada ${recipe.cookCount}x",
+                    text = "Cooked ${recipe.cookCount}x",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 if (recipe.lastUsedWeek != null) {
                     Text(
-                        text = "Última vez: semana ${recipe.lastUsedWeek}",
+                        text = "Last used: week ${recipe.lastUsedWeek}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -221,7 +221,7 @@ private fun ViewMode(
         item {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Ingredientes",
+                text = "Ingredients",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -290,7 +290,7 @@ private fun EditMode(
             OutlinedTextField(
                 value = uiState.editName,
                 onValueChange = onNameChanged,
-                label = { Text("Nome do prato *") },
+                label = { Text("Dish name *") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -307,7 +307,7 @@ private fun EditMode(
                     value = uiState.editCategory.replaceFirstChar { it.uppercase() },
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Categoria") },
+                    label = { Text("Category") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                     modifier = Modifier
                         .menuAnchor()
@@ -339,14 +339,14 @@ private fun EditMode(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Ingredientes",
+                    text = "Ingredients",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 TextButton(onClick = onAddIngredient) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Adicionar")
+                    Text("Add")
                 }
             }
         }
@@ -366,7 +366,7 @@ private fun EditMode(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Ingrediente ${index + 1}",
+                            text = "Ingredient ${index + 1}",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -377,7 +377,7 @@ private fun EditMode(
                             ) {
                                 Icon(
                                     Icons.Default.Delete,
-                                    contentDescription = "Remover",
+                                    contentDescription = "Remove",
                                     tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -392,14 +392,14 @@ private fun EditMode(
                         OutlinedTextField(
                             value = row.name,
                             onValueChange = { onIngredientNameChanged(index, it) },
-                            label = { Text("Nome *") },
+                            label = { Text("Name *") },
                             singleLine = true,
                             modifier = Modifier.weight(1f)
                         )
                         OutlinedTextField(
                             value = row.quantity,
                             onValueChange = { onIngredientQuantityChanged(index, it) },
-                            label = { Text("Quantidade") },
+                            label = { Text("Quantity") },
                             singleLine = true,
                             modifier = Modifier.weight(0.7f)
                         )
@@ -414,7 +414,7 @@ private fun EditMode(
                             value = row.category.replaceFirstChar { it.uppercase() },
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Categoria") },
+                            label = { Text("Category") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                             modifier = Modifier
                                 .menuAnchor()

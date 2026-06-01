@@ -36,7 +36,7 @@ fun RecipeListScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                placeholder = { Text("Pesquisar refeições...") },
+                placeholder = { Text("Search recipes...") },
                 singleLine = true
             )
 
@@ -51,7 +51,7 @@ fun RecipeListScreen(
                     FilterChip(
                         selected = selectedCategory == null,
                         onClick = { viewModel.onCategorySelected(null) },
-                        label = { Text("Todas") }
+                        label = { Text("All") }
                     )
                     categories.take(4).forEach { category ->
                         FilterChip(
@@ -103,7 +103,7 @@ fun RecipeListScreen(
                                     )
                                     if (recipe.cookCount > 0) {
                                         Text(
-                                            text = "Usada ${recipe.cookCount}x",
+                                            text = "Used ${recipe.cookCount}x",
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -123,7 +123,7 @@ fun RecipeListScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Nenhuma refeição encontrada",
+                                text = "No recipes found",
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -140,7 +140,7 @@ fun RecipeListScreen(
                 .align(Alignment.BottomEnd)
                 .padding(16.dp)
         ) {
-            Icon(Icons.Default.Add, contentDescription = "Adicionar refeição")
+            Icon(Icons.Default.Add, contentDescription = "Add recipe")
         }
     }
 }

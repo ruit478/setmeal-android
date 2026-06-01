@@ -36,10 +36,10 @@ fun AddMealScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Nova Refeição") },
+                title = { Text("New Recipe") },
                 navigationIcon = {
                     TextButton(onClick = { navController.popBackStack() }) {
-                        Text("Cancelar")
+                        Text("Cancel")
                     }
                 }
             )
@@ -64,7 +64,7 @@ fun AddMealScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                     }
-                    Text("Guardar Refeição")
+                    Text("Save Recipe")
                 }
             }
         }
@@ -82,7 +82,7 @@ fun AddMealScreen(
                 OutlinedTextField(
                     value = uiState.name,
                     onValueChange = { viewModel.onNameChanged(it) },
-                    label = { Text("Nome do prato *") },
+                    label = { Text("Dish name *") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     isError = uiState.error != null && uiState.name.isBlank()
@@ -100,7 +100,7 @@ fun AddMealScreen(
                         value = uiState.category.replaceFirstChar { it.uppercase() },
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Categoria") },
+                        label = { Text("Category") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                         modifier = Modifier
                             .menuAnchor()
@@ -132,14 +132,14 @@ fun AddMealScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Ingredientes",
+                        text = "Ingredients",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     TextButton(onClick = { viewModel.addIngredientRow() }) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Adicionar")
+                        Text("Add")
                     }
                 }
             }
@@ -200,7 +200,7 @@ fun IngredientRowCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Ingrediente ${index + 1}",
+                    text = "Ingredient ${index + 1}",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -211,7 +211,7 @@ fun IngredientRowCard(
                     ) {
                         Icon(
                             Icons.Default.Delete,
-                            contentDescription = "Remover",
+                            contentDescription = "Remove",
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(20.dp)
                         )
@@ -227,14 +227,14 @@ fun IngredientRowCard(
                 OutlinedTextField(
                     value = row.name,
                     onValueChange = onNameChanged,
-                    label = { Text("Nome *") },
+                    label = { Text("Name *") },
                     singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
                 OutlinedTextField(
                     value = row.quantity,
                     onValueChange = onQuantityChanged,
-                    label = { Text("Quantidade") },
+                    label = { Text("Quantity") },
                     singleLine = true,
                     modifier = Modifier.weight(0.7f)
                 )
@@ -250,7 +250,7 @@ fun IngredientRowCard(
                     value = row.category.replaceFirstChar { it.uppercase() },
                     onValueChange = {},
                     readOnly = true,
-                    label = { Text("Categoria") },
+                    label = { Text("Category") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
                     modifier = Modifier
                         .menuAnchor()

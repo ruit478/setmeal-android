@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.setmeal.ui.override.OverrideFormScreen
 import com.setmeal.ui.recipes.AddMealScreen
 import com.setmeal.ui.recipes.RecipeDetailScreen
 import com.setmeal.ui.week.WeekOverviewScreen
@@ -39,7 +40,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(Routes.OVERRIDE_FORM) {
-            // TODO Phase 3: OverrideFormScreen
+            OverrideFormScreen(navController = navController)
         }
 
         composable(Routes.ADD_MEAL) {

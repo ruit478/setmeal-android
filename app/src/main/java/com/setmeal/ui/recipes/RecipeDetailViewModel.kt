@@ -67,7 +67,7 @@ class RecipeDetailViewModel @Inject constructor(
                     )
                 }
             } else {
-                _uiState.update { it.copy(isLoading = false, error = "Refeição não encontrada") }
+                _uiState.update { it.copy(isLoading = false, error = "Recipe not found") }
             }
         }
     }
@@ -153,13 +153,13 @@ class RecipeDetailViewModel @Inject constructor(
     fun saveEdits() {
         val state = _uiState.value
         if (state.editName.isBlank()) {
-            _uiState.update { it.copy(error = "O nome é obrigatório") }
+            _uiState.update { it.copy(error = "Name is required") }
             return
         }
 
         val validIngredients = state.editIngredients.filter { it.name.isNotBlank() }
         if (validIngredients.isEmpty()) {
-            _uiState.update { it.copy(error = "Adiciona pelo menos um ingrediente") }
+            _uiState.update { it.copy(error = "Add at least one ingredient") }
             return
         }
 
@@ -197,7 +197,7 @@ class RecipeDetailViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isSaving = false, error = "Erro ao guardar: ${e.message}")
+                    it.copy(isSaving = false, error = "Save error: ${e.message}")
                 }
             }
         }
@@ -217,7 +217,7 @@ class RecipeDetailViewModel @Inject constructor(
                 recipeDao.deleteRecipe(_uiState.value.recipe!!)
                 _uiState.update { it.copy(deleted = true) }
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Erro ao eliminar: ${e.message}") }
+                _uiState.update { it.copy(error = "Delete error: ${e.message}") }
             }
         }
     }

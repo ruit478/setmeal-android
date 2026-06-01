@@ -7,9 +7,9 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
-    data object Week : Screen("week", "Semana", Icons.Default.CalendarMonth)
-    data object Recipes : Screen("recipes", "Refeições", Icons.Default.Restaurant)
-    data object Grocery : Screen("grocery", "Compras", Icons.Default.ShoppingCart)
+    data object Week : Screen("week", "Week", Icons.Default.CalendarMonth)
+    data object Recipes : Screen("recipes", "Recipes", Icons.Default.Restaurant)
+    data object Grocery : Screen("grocery", "Grocery", Icons.Default.ShoppingCart)
 }
 
 object Routes {

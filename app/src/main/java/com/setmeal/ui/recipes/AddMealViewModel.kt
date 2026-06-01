@@ -95,13 +95,13 @@ class AddMealViewModel @Inject constructor(
 
         // Validate
         if (state.name.isBlank()) {
-            _uiState.update { it.copy(error = "O nome da refeição é obrigatório") }
+            _uiState.update { it.copy(error = "Recipe name is required") }
             return
         }
 
         val validIngredients = state.ingredients.filter { it.name.isNotBlank() }
         if (validIngredients.isEmpty()) {
-            _uiState.update { it.copy(error = "Adiciona pelo menos um ingrediente") }
+            _uiState.update { it.copy(error = "Add at least one ingredient") }
             return
         }
 
@@ -131,7 +131,7 @@ class AddMealViewModel @Inject constructor(
                 _uiState.update { it.copy(isSaving = false, savedSuccessfully = true) }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isSaving = false, error = "Erro ao guardar: ${e.message}")
+                    it.copy(isSaving = false, error = "Save error: ${e.message}")
                 }
             }
         }
