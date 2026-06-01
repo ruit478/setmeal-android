@@ -28,7 +28,7 @@ data class SlotEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val planId: String,
     val dayOfWeek: Int, // 0=Segunda .. 6=Domingo
-    val mealTime: String, // "almoco" or "jantar"
+    val mealTime: String, // "lunch" or "dinner"
     val slotType: String, // "claimed", "auto_fill", "work", "leftover"
     val recipeId: String? = null,
     val recipeName: String? = null, // denormalized for display

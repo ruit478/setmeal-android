@@ -15,8 +15,8 @@ import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 
 data class WeekSummary(
-    val dayOfWeek: Int,          // 0=Mon..6=Sun (mapped from DB: 0=Segunda..6=Domingo)
-    val mealTime: String,        // "almoco" or "jantar" (DB values)
+    val dayOfWeek: Int,          // 0=Mon..6=Sun
+ val mealTime: String,        // "lunch" or "dinner" (DB values)
     val recipeId: String?,
     val recipeName: String?,
     val slotType: String?,       // "claimed", "auto_fill", "work", "leftover", or null for empty
@@ -67,7 +67,7 @@ class WeekViewModel @Inject constructor(
     val weekGrid: StateFlow<List<WeekSummary>> = allSlots
         .map { slots ->
             val slotMap = slots.associateBy { "${it.dayOfWeek}_${it.mealTime}" }
-            val meals = listOf("almoco", "jantar")
+            val meals = listOf("lunch", "dinner")
             buildList {
                 for (meal in meals) {
                     for (day in 0..6) {

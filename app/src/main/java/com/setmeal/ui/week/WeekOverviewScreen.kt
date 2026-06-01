@@ -254,7 +254,11 @@ private fun MealRow(
 
         // Seven day cells
         cells.forEach { summary ->
-            WeekCell(summary = summary, onClick = { onCellClick(summary) })
+            WeekCell(
+                summary = summary,
+                onClick = { onCellClick(summary) },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -262,7 +266,8 @@ private fun MealRow(
 @Composable
 private fun WeekCell(
     summary: WeekSummary,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val isEmpty = summary.slotType == null || summary.recipeId == null
     val isWorkSlot = summary.slotType == "work"
@@ -276,8 +281,7 @@ private fun WeekCell(
     }
 
     Surface(
-        modifier = Modifier
-            .weight(1f)
+        modifier = modifier
             .fillMaxHeight(),
         onClick = onClick,
         shape = RoundedCornerShape(6.dp),
