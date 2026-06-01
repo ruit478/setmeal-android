@@ -21,8 +21,6 @@ private val dayShortLabels = listOf(
     "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
 )
 
-private val mealOptions = listOf("lunch" to "Lunch", "dinner" to "Dinner")
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun OverrideFormScreen(
@@ -137,7 +135,6 @@ fun OverrideFormScreen(
                     index = index,
                     claim = claim,
                     onDishNameChanged = { viewModel.updateClaimDishName(claim.id, it) },
-                    onMealChanged = { viewModel.updateClaimMealTime(claim.id, it) },
                     onPortionCountChanged = { viewModel.updateClaimPortionCount(claim.id, it) },
                     onDelete = { viewModel.removeClaim(claim.id) }
                 )
@@ -162,13 +159,11 @@ fun OverrideFormScreen(
 
 // ── Claim card ──────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ClaimCard(
     index: Int,
     claim: Claim,
     onDishNameChanged: (String) -> Unit,
-    onMealChanged: (String) -> Unit,
     onPortionCountChanged: (Int) -> Unit,
     onDelete: () -> Unit
 ) {
@@ -213,80 +208,47 @@ private fun ClaimCard(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Meal time + Portions side by side
+            // Portion counter
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Meal time dropdown
-                var mealExpanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = mealExpanded,
-                    onExpandedChange = { mealExpanded = it },
-                    modifier = Modifier.weight(1f)
+                Text(
+                    text = "Portions",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                FilledIconButton(
+                    onClick = { onPortionCountChanged(claim.portionCount - 1) },
+                    modifier = Modifier.size(36.dp),
+                    enabled = claim.portionCount > 1
                 ) {
-                    OutlinedTextField(
-                        value = mealOptions
-                            .firstOrNull { it.first == claim.mealTime }
-                            ?.second ?: "?",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Meal") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(mealExpanded) },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = mealExpanded,
-                        onDismissRequest = { mealExpanded = false }
-                    ) {
-                        mealOptions.forEach { (key, label) ->
-                            DropdownMenuItem(
-                                text = { Text(label) },
-                                onClick = {
-                                    onMealChanged(key)
-                                    mealExpanded = false
-                                }
-                            )
-                        }
-                    }
+                    Text("−", fontWeight = FontWeight.Bold)
                 }
 
-                // Portion counter
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Text(
+                    text = "${claim.portionCount}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.width(24.dp),
+                    textAlign = TextAlign.Center
+                )
+
+                Text(
+                    text = "/N",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                FilledIconButton(
+                    onClick = { onPortionCountChanged(claim.portionCount + 1) },
+                    modifier = Modifier.size(36.dp)
                 ) {
-                    FilledIconButton(
-                        onClick = { onPortionCountChanged(claim.portionCount - 1) },
-                        modifier = Modifier.size(36.dp),
-                        enabled = claim.portionCount > 1
-                    ) {
-                        Text("−", fontWeight = FontWeight.Bold)
-                    }
-
-                    Text(
-                        text = "${claim.portionCount}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.width(24.dp),
-                        textAlign = TextAlign.Center
-                    )
-
-                    Text(
-                        text = "/N",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    FilledIconButton(
-                        onClick = { onPortionCountChanged(claim.portionCount + 1) },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Text("+", fontWeight = FontWeight.Bold)
-                    }
+                    Text("+", fontWeight = FontWeight.Bold)
                 }
             }
         }

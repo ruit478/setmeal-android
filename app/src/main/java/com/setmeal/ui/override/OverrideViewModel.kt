@@ -19,11 +19,8 @@ import javax.inject.Inject
 
 data class Claim(
     val id: String = UUID.randomUUID().toString(),
-    val recipeId: String? = null,
     val recipeName: String? = null,
-    val portionCount: Int = 1,
-    val dayOfWeek: Int = 0,
-    val mealTime: String = "lunch"
+    val portionCount: Int = 1
 )
 
 data class OverrideUiState(
@@ -72,11 +69,8 @@ class OverrideViewModel @Inject constructor(
                 val loadedClaims = slotGroups.map { (_, group) ->
                     val primary = group.minByOrNull { it.sortOrder } ?: group.first()
                     Claim(
-                        recipeId = primary.recipeId,
                         recipeName = primary.recipeName,
-                        portionCount = primary.batchTotal ?: 1,
-                        dayOfWeek = primary.dayOfWeek,
-                        mealTime = primary.mealTime
+                        portionCount = primary.batchTotal ?: 1
                     )
                 }
 
@@ -125,18 +119,8 @@ class OverrideViewModel @Inject constructor(
             state.copy(
                 claims = state.claims.map { claim ->
                     if (claim.id == claimId)
-                        claim.copy(recipeId = null, recipeName = dishName)
+                        claim.copy(recipeName = dishName)
                     else claim
-                }
-            )
-        }
-    }
-
-    fun updateClaimMealTime(claimId: String, mealTime: String) {
-        _uiState.update { state ->
-            state.copy(
-                claims = state.claims.map { claim ->
-                    if (claim.id == claimId) claim.copy(mealTime = mealTime) else claim
                 }
             )
         }
@@ -194,21 +178,18 @@ class OverrideViewModel @Inject constructor(
                 // Build all week slots (ordered: Mon lunch, Mon dinner, Tue lunch, …)
                 val allSlots = buildAllSlots(state.workDays)
 
-                // Expand user claims into portion pools (one per mealTime)
-                val lunchPool = mutableListOf<Pair<String, Int>>()  // (recipeName, claimIndex)
-                val dinnerPool = mutableListOf<Pair<String, Int>>()
+                // Expand user claims into a single portion pool
+                val portionPool = mutableListOf<Pair<String, Int>>()  // (recipeName, claimIndex)
 
                 for ((idx, claim) in state.claims.withIndex()) {
                     if (claim.recipeName.isNullOrBlank()) continue
                     repeat(claim.portionCount) {
-                        val pool = if (claim.mealTime == "lunch") lunchPool else dinnerPool
-                        pool.add(Pair(claim.recipeName, idx))
+                        portionPool.add(Pair(claim.recipeName, idx))
                     }
                 }
 
                 // Shuffle for random distribution across the week
-                lunchPool.shuffle()
-                dinnerPool.shuffle()
+                portionPool.shuffle()
 
                 // Fetch recipes for auto-fill gaps
                 val recipes = recipeDao.getRecipesByLeastRecentlyUsed()
@@ -219,11 +200,9 @@ class OverrideViewModel @Inject constructor(
                 var sortOrder = 0
 
                 for ((day, mealTime) in allSlots) {
-                    val pool = if (mealTime == "lunch") lunchPool else dinnerPool
-
-                    if (pool.isNotEmpty()) {
+                    if (portionPool.isNotEmpty()) {
                         // Place a user-claimed portion
-                        val (name, claimIdx) = pool.removeAt(0)
+                        val (name, claimIdx) = portionPool.removeAt(0)
                         val claimPortions = state.claims[claimIdx].portionCount
                         val batchGroup: Int? = if (claimPortions > 1) (claimIdx + 1) else null
                         val batchTotal: Int? = if (claimPortions > 1) claimPortions else null
