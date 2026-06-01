@@ -156,6 +156,7 @@ fun GroceryListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddItemDialog(
     onDismiss: () -> Unit,

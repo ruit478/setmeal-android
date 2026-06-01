@@ -2,8 +2,12 @@ package com.setmeal.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.setmeal.ui.recipes.AddMealScreen
+import com.setmeal.ui.recipes.RecipeDetailScreen
 import com.setmeal.ui.week.WeekOverviewScreen
 import com.setmeal.ui.recipes.RecipeListScreen
 import com.setmeal.ui.grocery.GroceryListScreen
@@ -39,11 +43,18 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(Routes.ADD_MEAL) {
-            // TODO Phase 2: AddMealScreen
+            AddMealScreen(navController = navController)
         }
 
-        composable(Routes.RECIPE_DETAIL) {
-            // TODO Phase 2: RecipeDetailScreen
+        composable(
+            route = Routes.RECIPE_DETAIL,
+            arguments = listOf(navArgument("recipeId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val recipeId = backStackEntry.arguments?.getString("recipeId") ?: return@composable
+            RecipeDetailScreen(
+                navController = navController,
+                recipeId = recipeId
+            )
         }
 
         composable(Routes.BATCH_VIEW) {

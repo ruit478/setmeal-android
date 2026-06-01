@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Cutlery icon (fork and knife) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,20 L40,50 C40,56 36,60 32,60 L32,88 L28,88 L28,60 C24,60 20,56 20,50 L20,20 L24,20 L24,48 C24,52 26,54 28,54 L28,20 L32,20 L32,54 C34,54 36,52 36,48 L36,20 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,24 L60,60 L64,60 L64,88 L68,88 L68,60 L72,60 L72,24 C72,20 68,18 66,18 C64,18 60,20 60,24 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,28 L76,28 L76,88 L72,88 Z" />
+</vector>

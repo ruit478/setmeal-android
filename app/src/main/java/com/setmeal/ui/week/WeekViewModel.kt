@@ -12,6 +12,7 @@ import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class WeekViewModel @Inject constructor(
     private val weeklyPlanDao: WeeklyPlanDao
@@ -21,10 +22,8 @@ class WeekViewModel @Inject constructor(
     val currentWeekStart: StateFlow<LocalDate> = _currentWeekStart.asStateFlow()
 
     val currentPlan: StateFlow<WeeklyPlanEntity?> = _currentWeekStart
-        .flatMapLatest { weekStart ->
+        .mapLatest { weekStart ->
             weeklyPlanDao.getPlanByWeekStart(weekStart.toString())
-                .map { it }
-                .flowOn(kotlinx.coroutines.Dispatchers.IO)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 

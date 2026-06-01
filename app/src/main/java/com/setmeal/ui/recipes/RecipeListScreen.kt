@@ -27,118 +27,120 @@ fun RecipeListScreen(
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Search bar
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { viewModel.onSearchQueryChanged(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            placeholder = { Text("Pesquisar refeições...") },
-            singleLine = true
-        )
-
-        // Category filter chips
-        if (categories.isNotEmpty()) {
-            Row(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Search bar
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { viewModel.onSearchQueryChanged(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    selected = selectedCategory == null,
-                    onClick = { viewModel.onCategorySelected(null) },
-                    label = { Text("Todas") }
-                )
-                categories.take(4).forEach { category ->
-                    FilterChip(
-                        selected = category == selectedCategory,
-                        onClick = { viewModel.onCategorySelected(category) },
-                        label = { Text(category.replaceFirstChar { it.uppercase() }) }
-                    )
-                }
-            }
-        }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                placeholder = { Text("Pesquisar refeições...") },
+                singleLine = true
+            )
 
-        // Recipe list
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(recipes) { recipe ->
-                Card(
+            // Category filter chips
+            if (categories.isNotEmpty()) {
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onNavigateToDetail(recipe.id) }
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
+                    FilterChip(
+                        selected = selectedCategory == null,
+                        onClick = { viewModel.onCategorySelected(null) },
+                        label = { Text("Todas") }
+                    )
+                    categories.take(4).forEach { category ->
+                        FilterChip(
+                            selected = category == selectedCategory,
+                            onClick = { viewModel.onCategorySelected(category) },
+                            label = { Text(category.replaceFirstChar { it.uppercase() }) }
+                        )
+                    }
+                }
+            }
+
+            // Recipe list
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(recipes) { recipe ->
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .clickable { onNavigateToDetail(recipe.id) }
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = recipe.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                SuggestionChip(
-                                    onClick = {},
-                                    label = {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = recipe.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    SuggestionChip(
+                                        onClick = {},
+                                        label = {
+                                            Text(
+                                                recipe.category.replaceFirstChar { it.uppercase() },
+                                                style = MaterialTheme.typography.labelSmall
+                                            )
+                                        }
+                                    )
+                                    if (recipe.cookCount > 0) {
                                         Text(
-                                            recipe.category.replaceFirstChar { it.uppercase() },
-                                            style = MaterialTheme.typography.labelSmall
+                                            text = "Usada ${recipe.cookCount}x",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
-                                )
-                                if (recipe.cookCount > 0) {
-                                    Text(
-                                        text = "Usada ${recipe.cookCount}x",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            if (recipes.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Nenhuma refeição encontrada",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                if (recipes.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Nenhuma refeição encontrada",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
         }
-    }
 
-    // FAB
-    FloatingActionButton(
-        onClick = onNavigateToAddMeal,
-        modifier = Modifier
-            .padding(16.dp)
-            .align(Alignment.BottomEnd)
-    ) {
-        Icon(Icons.Default.Add, contentDescription = "Adicionar refeição")
+        // FAB
+        FloatingActionButton(
+            onClick = onNavigateToAddMeal,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Adicionar refeição")
+        }
     }
 }
