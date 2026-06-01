@@ -15,11 +15,15 @@ import java.time.temporal.TemporalAdjusters
 import javax.inject.Inject
 
 data class WeekSummary(
-    val dayOfWeek: Int,          // 0=Mon..6=Sun
-    val mealTime: String,        // "lunch" or "dinner"
+    val dayOfWeek: Int,
     val recipeId: String?,
     val recipeName: String?,
-    val slotType: String?        // "claimed", "auto_fill", "work", or null for empty
+    val slotType: String?
+)
+
+data class DayMeals(
+    val dayOfWeek: Int,
+    val meals: List<WeekSummary>
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -54,26 +58,36 @@ class WeekViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val weekGrid: StateFlow<List<WeekSummary>> = allSlots
+    val weekGrid: StateFlow<List<DayMeals>> = allSlots
         .map { slots ->
-            val slotMap = slots.associateBy { "${it.dayOfWeek}_${it.mealTime}" }
-            val meals = listOf("lunch", "dinner")
-            buildList {
-                for (meal in meals) {
-                    for (day in 0..6) {
-                        val key = "${day}_${meal}"
-                        val slot = slotMap[key]
-                        add(
-                            WeekSummary(
-                                dayOfWeek = day,
-                                mealTime = meal,
-                                recipeId = slot?.recipeId,
-                                recipeName = slot?.recipeName,
-                                slotType = slot?.slotType
-                            )
-                        )
-                    }
-                }
+            (0..6).map { day ->
+                val daySlots = slots.filter { it.dayOfWeek == day }
+                    .sortedBy { if (it.mealTime == "lunch") 0 else 1 }
+
+                // Enforce exactly 2 display entries per day (fill empty if missing)
+                val mealNames = mutableListOf<WeekSummary>()
+                val lunch = daySlots.find { it.mealTime == "lunch" }
+                val dinner = daySlots.find { it.mealTime == "dinner" }
+
+                // Lunch slot (or empty)
+                mealNames.add(
+                    WeekSummary(
+                        dayOfWeek = day,
+                        recipeId = lunch?.recipeId,
+                        recipeName = lunch?.recipeName,
+                        slotType = lunch?.slotType
+                    )
+                )
+                // Dinner slot (or empty)
+                mealNames.add(
+                    WeekSummary(
+                        dayOfWeek = day,
+                        recipeId = dinner?.recipeId,
+                        recipeName = dinner?.recipeName,
+                        slotType = dinner?.slotType
+                    )
+                )
+                DayMeals(day, mealNames)
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

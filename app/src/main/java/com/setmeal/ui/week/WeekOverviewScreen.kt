@@ -1,29 +1,27 @@
 package com.setmeal.ui.week
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-private val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-
-private val emptyBackground = Color(0xFFF5F5F5)
+private val dayLabels = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 @Composable
 fun WeekOverviewScreen(
@@ -90,67 +88,34 @@ fun WeekOverviewScreen(
                     }
                 }
             } else {
-                // ── Day label row ──
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp)
-                ) {
-                    Spacer(modifier = Modifier.width(48.dp))
-                    dayLabels.forEach { label ->
-                        Text(
-                            text = label,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // ── Week grid: 2 rows (Lunch, Dinner) × 7 columns ──
-                // weekGrid layout: indices 0-6 = Lunch Mon-Sun, 7-13 = Dinner Mon-Sun
-                Column(
+                // ── Day-by-day list ──
+                LazyColumn(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                        .padding(horizontal = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(vertical = 4.dp)
                 ) {
-                    val lunchCells = weekGrid.take(7)
-                    val dinnerCells = weekGrid.drop(7)
-
-                    MealRow(
-                        label = "Lunch",
-                        cells = lunchCells,
-                        onCellClick = { summary ->
-                            handleCellClick(
-                                summary = summary,
-                                onNavigateToOverride = onNavigateToOverride,
-                                snackbarHostState = snackbarHostState,
-                                scope = scope
-                            )
-                        }
-                    )
-
-                    MealRow(
-                        label = "Dinner",
-                        cells = dinnerCells,
-                        onCellClick = { summary ->
-                            handleCellClick(
-                                summary = summary,
-                                onNavigateToOverride = onNavigateToOverride,
-                                snackbarHostState = snackbarHostState,
-                                scope = scope
-                            )
-                        }
-                    )
+                    itemsIndexed(weekGrid) { dayIndex, dayMeals ->
+                        DayCard(
+                            dayLabel = dayLabels[dayIndex],
+                            meals = dayMeals.meals,
+                            onMealClick = { summary ->
+                                if (summary.slotType == null) {
+                                    onNavigateToOverride()
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            message = summary.recipeName ?: "Meal",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(4.dp))
 
                 // ── Action buttons ──
                 Row(
@@ -178,120 +143,88 @@ fun WeekOverviewScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Composables
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Day card ─────────────────────────────────────────────────────
+
+@Composable
+private fun DayCard(
+    dayLabel: String,
+    meals: List<WeekSummary>,
+    onMealClick: (WeekSummary) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(
+                text = dayLabel,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            meals.forEach { summary ->
+                MealRow(summary = summary, onClick = { onMealClick(summary) })
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+    }
+}
+
+// ── Meal row ─────────────────────────────────────────────────────
 
 @Composable
 private fun MealRow(
-    label: String,
-    cells: List<WeekSummary>,
-    onCellClick: (WeekSummary) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(72.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        // Meal label column
-        Surface(
-            modifier = Modifier
-                .width(48.dp)
-                .fillMaxHeight(),
-            shape = RoundedCornerShape(6.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-
-        // Seven day cells
-        cells.forEach { summary ->
-            WeekCell(
-                summary = summary,
-                onClick = { onCellClick(summary) },
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun WeekCell(
     summary: WeekSummary,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     val isEmpty = summary.slotType == null
-    val bgColor = if (isEmpty) emptyBackground else MaterialTheme.colorScheme.surfaceContainerHighest
+    val bgColor = if (isEmpty)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+    else
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
 
     Surface(
-        modifier = modifier
-            .fillMaxHeight(),
+        modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
-        shape = RoundedCornerShape(6.dp),
-        color = bgColor,
-        tonalElevation = if (isEmpty) 0.dp else 2.dp
+        shape = RoundedCornerShape(8.dp),
+        color = bgColor
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(4.dp),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Text(
+                text = if (isEmpty) "—" else (summary.recipeName ?: ""),
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isEmpty)
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                else
+                    MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
             if (isEmpty) {
                 Text(
                     text = "+",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 14.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                )
-            } else {
-                Text(
-                    text = summary.recipeName ?: "",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = TextAlign.Center,
-                    color = Color.Black
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────
 
 private fun buildWeekLabel(start: LocalDate, end: LocalDate): String {
     val sf = WeekViewModel.WEEK_FORMATTER
     return "${start.format(sf)} - ${end.format(sf)}"
-}
-
-private fun handleCellClick(
-    summary: WeekSummary,
-    onNavigateToOverride: () -> Unit,
-    snackbarHostState: SnackbarHostState,
-    scope: kotlinx.coroutines.CoroutineScope
-) {
-    if (summary.slotType == null) {
-        // Empty cell → navigate to OverrideForm
-        onNavigateToOverride()
-    } else {
-        // Filled cell → show recipe name in snackbar
-        val name = summary.recipeName ?: "Meal"
-        scope.launch {
-            snackbarHostState.showSnackbar(
-                message = name,
-                duration = SnackbarDuration.Short
-            )
-        }
-    }
 }
