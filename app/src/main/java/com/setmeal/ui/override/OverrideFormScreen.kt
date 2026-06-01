@@ -62,7 +62,7 @@ fun OverrideFormScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    enabled = !uiState.isSaving && !uiState.isAutoFilling
+                    enabled = !uiState.isSaving
                 ) {
                     if (uiState.isSaving) {
                         CircularProgressIndicator(
@@ -141,25 +141,6 @@ fun OverrideFormScreen(
                     onPortionCountChanged = { viewModel.updateClaimPortionCount(claim.id, it) },
                     onDelete = { viewModel.removeClaim(claim.id) }
                 )
-            }
-
-            // ── Auto-fill button ───────────────────────────────
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = { viewModel.autoFillRemaining() },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !uiState.isAutoFilling && !uiState.isSaving
-                ) {
-                    if (uiState.isAutoFilling) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-                    Text("Auto-fill remaining")
-                }
             }
 
             // ── Error message ──────────────────────────────────

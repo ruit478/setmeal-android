@@ -7,7 +7,6 @@ import com.setmeal.data.db.dao.WeeklyPlanDao
 import com.setmeal.data.db.entity.RecipeEntity
 import com.setmeal.data.db.entity.SlotEntity
 import com.setmeal.data.db.entity.WeeklyPlanEntity
-import com.setmeal.data.planner.MealPlanner
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -33,7 +32,6 @@ data class OverrideUiState(
     val claims: List<Claim> = emptyList(),
     val recipes: List<RecipeEntity> = emptyList(),
     val isSaving: Boolean = false,
-    val isAutoFilling: Boolean = false,
     val savedSuccessfully: Boolean = false,
     val error: String? = null
 )
@@ -155,61 +153,7 @@ class OverrideViewModel @Inject constructor(
         }
     }
 
-    // ── Auto-fill ──────────────────────────────────────────────────
-
-    fun autoFillRemaining() {
-        val state = _uiState.value
-        _uiState.update { it.copy(isAutoFilling = true) }
-
-        viewModelScope.launch {
-            try {
-                // Compute all possible slots for the week
-                val allSlots = buildAllSlots(state.workDays)
-                val usedSlots = mutableSetOf<Pair<Int, String>>()
-
-                // Simulate allocation of existing claims (in order) to find empty slots
-                for (claim in state.claims) {
-                    allocateSlots(allSlots, usedSlots, claim.mealTime, claim.portionCount)
-                }
-
-                // Remaining slots = all minus those taken by user claims
-                val emptySlots = allSlots.filter { it !in usedSlots }
-
-                if (emptySlots.isEmpty()) {
-                    _uiState.update { it.copy(isAutoFilling = false) }
-                    return@launch
-                }
-
-                val recipes = recipeDao.getRecipesByLeastRecentlyUsed()
-
-                val fillResults = MealPlanner.autoFillSlots(
-                    emptySlots = emptySlots,
-                    recipes = recipes,
-                    planWeekStart = state.weekStart
-                )
-
-                val newClaims = fillResults.map { result ->
-                    Claim(
-                        recipeId = result.recipeId,
-                        recipeName = result.recipeName,
-                        portionCount = result.batchTotal ?: 1,
-                        dayOfWeek = result.dayOfWeek,
-                        mealTime = result.mealTime
-                    )
-                }
-
-                _uiState.update {
-                    it.copy(claims = it.claims + newClaims, isAutoFilling = false)
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isAutoFilling = false, error = "Auto-fill error: ${e.message}")
-                }
-            }
-        }
-    }
-
-    // ── Save ───────────────────────────────────────────────────────
+    // ── Save (distributes claims + auto-fills gaps) ──────────────────
 
     fun save() {
         val state = _uiState.value
@@ -247,57 +191,89 @@ class OverrideViewModel @Inject constructor(
                     planId = plan.id
                 }
 
-                // Build all week slots and auto-assign days to claims
+                // Build all week slots (ordered: Mon lunch, Mon dinner, Tue lunch, …)
                 val allSlots = buildAllSlots(state.workDays)
-                val usedSlots = mutableSetOf<Pair<Int, String>>()
+
+                // Expand user claims into portion pools (one per mealTime)
+                val lunchPool = mutableListOf<Pair<String, Int>>()  // (recipeName, claimIndex)
+                val dinnerPool = mutableListOf<Pair<String, Int>>()
+
+                for ((idx, claim) in state.claims.withIndex()) {
+                    if (claim.recipeName.isNullOrBlank()) continue
+                    repeat(claim.portionCount) {
+                        val pool = if (claim.mealTime == "lunch") lunchPool else dinnerPool
+                        pool.add(Pair(claim.recipeName, idx))
+                    }
+                }
+
+                // Shuffle for random distribution across the week
+                lunchPool.shuffle()
+                dinnerPool.shuffle()
+
+                // Fetch recipes for auto-fill gaps
+                val recipes = recipeDao.getRecipesByLeastRecentlyUsed()
+                var recipeIdx = 0
+                val usedRecipeIds = mutableSetOf<String>()
 
                 val slotEntities = mutableListOf<SlotEntity>()
-                var nextBatchGroup = 1
+                var sortOrder = 0
 
-                for (claim in state.claims) {
-                    if (claim.recipeName.isNullOrBlank()) continue
+                for ((day, mealTime) in allSlots) {
+                    val pool = if (mealTime == "lunch") lunchPool else dinnerPool
 
-                    val claimSlots = allocateSlots(allSlots, usedSlots, claim.mealTime, claim.portionCount)
+                    if (pool.isNotEmpty()) {
+                        // Place a user-claimed portion
+                        val (name, claimIdx) = pool.removeAt(0)
+                        val claimPortions = state.claims[claimIdx].portionCount
+                        val batchGroup: Int? = if (claimPortions > 1) (claimIdx + 1) else null
+                        val batchTotal: Int? = if (claimPortions > 1) claimPortions else null
 
-                    if (claimSlots.isEmpty()) continue // No space left for this claim
-
-                    if (claim.portionCount > 1) {
-                        // Multi-portion: first = "claimed", rest = "leftover"
-                        for ((i, slot) in claimSlots.withIndex()) {
-                            slotEntities.add(
-                                SlotEntity(
-                                    planId = planId,
-                                    dayOfWeek = slot.first,
-                                    mealTime = slot.second,
-                                    slotType = if (i == 0) "claimed" else "leftover",
-                                    recipeId = null,
-                                    recipeName = claim.recipeName,
-                                    batchGroup = nextBatchGroup,
-                                    batchTotal = claim.portionCount,
-                                    sortOrder = slotEntities.size
-                                )
-                            )
-                        }
-                        nextBatchGroup++
-                    } else {
-                        val slot = claimSlots.first()
                         slotEntities.add(
                             SlotEntity(
                                 planId = planId,
-                                dayOfWeek = slot.first,
-                                mealTime = slot.second,
+                                dayOfWeek = day,
+                                mealTime = mealTime,
                                 slotType = "claimed",
                                 recipeId = null,
-                                recipeName = claim.recipeName,
-                                batchGroup = null,
-                                batchTotal = null,
-                                sortOrder = slotEntities.size
+                                recipeName = name,
+                                batchGroup = batchGroup,
+                                batchTotal = batchTotal,
+                                sortOrder = sortOrder++
                             )
                         )
+                    } else if (recipeIdx < recipes.size) {
+                        // Auto-fill with recipe from bank
+                        val recipe = recipes[recipeIdx++]
+                        usedRecipeIds.add(recipe.id)
+
+                        slotEntities.add(
+                            SlotEntity(
+                                planId = planId,
+                                dayOfWeek = day,
+                                mealTime = mealTime,
+                                slotType = "claimed",
+                                recipeId = recipe.id,
+                                recipeName = recipe.name,
+                                batchGroup = null,
+                                batchTotal = null,
+                                sortOrder = sortOrder++
+                            )
+                        )
+                    } else {
+                        // No claims left and no recipes — leave as gap
+                        break
                     }
                 }
 
                 weeklyPlanDao.insertSlots(slotEntities)
+
+                // Update lastUsedWeek for auto-filled recipes
+                for (recipeId in usedRecipeIds) {
+                    val recipe = recipeDao.getRecipeById(recipeId) ?: continue
+                    if (recipe.lastUsedWeek == null || recipe.lastUsedWeek != isoWeek) {
+                        recipeDao.updateRecipe(recipe.copy(lastUsedWeek = isoWeek))
+                    }
+                }
 
                 _uiState.update { it.copy(isSaving = false, savedSuccessfully = true) }
             } catch (e: Exception) {
@@ -321,27 +297,5 @@ class OverrideViewModel @Inject constructor(
             }
         }
         return slots
-    }
-
-    private fun allocateSlots(
-        allSlots: List<Pair<Int, String>>,
-        usedSlots: MutableSet<Pair<Int, String>>,
-        mealTime: String,
-        count: Int
-    ): List<Pair<Int, String>> {
-        val startIdx = allSlots.indexOfFirst { it.second == mealTime && it !in usedSlots }
-        if (startIdx < 0) return emptyList()
-
-        val result = mutableListOf<Pair<Int, String>>()
-        var idx = startIdx
-        while (result.size < count && idx < allSlots.size) {
-            val slot = allSlots[idx]
-            if (slot !in usedSlots) {
-                result.add(slot)
-                usedSlots.add(slot)
-            }
-            idx++
-        }
-        return result
     }
 }
