@@ -174,6 +174,7 @@ fun AddMealScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun IngredientRowCard(
     index: Int,

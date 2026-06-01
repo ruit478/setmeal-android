@@ -265,7 +265,7 @@ private fun ViewMode(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun EditMode(
     uiState: RecipeDetailUiState,

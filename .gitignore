@@ -15,4 +15,5 @@ gradle-bin.zip
 x86_64-libs/
 x86_64-libs2/
 .git-credentials
+.git-credentials-copy
 .gradle/
