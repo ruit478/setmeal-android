@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.setmeal.data.db.entity.RecipeEntity
 
 private val dayLabels = listOf(
     "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
@@ -141,9 +140,8 @@ fun OverrideFormScreen(
                 ClaimCard(
                     index = index,
                     claim = claim,
-                    recipes = uiState.recipes,
                     workDays = uiState.workDays,
-                    onRecipeChanged = { viewModel.updateClaimRecipe(claim.id, it) },
+                    onDishNameChanged = { viewModel.updateClaimDishName(claim.id, it) },
                     onDayChanged = { viewModel.updateClaimDayOfWeek(claim.id, it) },
                     onMealChanged = { viewModel.updateClaimMealTime(claim.id, it) },
                     onPortionCountChanged = { viewModel.updateClaimPortionCount(claim.id, it) },
@@ -194,9 +192,8 @@ fun OverrideFormScreen(
 private fun ClaimCard(
     index: Int,
     claim: Claim,
-    recipes: List<RecipeEntity>,
     workDays: Set<Int>,
-    onRecipeChanged: (RecipeEntity) -> Unit,
+    onDishNameChanged: (String) -> Unit,
     onDayChanged: (Int) -> Unit,
     onMealChanged: (String) -> Unit,
     onPortionCountChanged: (Int) -> Unit,
@@ -233,39 +230,15 @@ private fun ClaimCard(
                 }
             }
 
-            // Recipe dropdown
-            var recipeExpanded by remember { mutableStateOf(false) }
-            val selectedRecipe = recipes.find { it.id == claim.recipeId }
-            ExposedDropdownMenuBox(
-                expanded = recipeExpanded,
-                onExpandedChange = { recipeExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = selectedRecipe?.name ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Dish *") },
-                    placeholder = { Text("Select dish") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(recipeExpanded) },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = recipeExpanded,
-                    onDismissRequest = { recipeExpanded = false }
-                ) {
-                    recipes.forEach { recipe ->
-                        DropdownMenuItem(
-                            text = { Text(recipe.name) },
-                            onClick = {
-                                onRecipeChanged(recipe)
-                                recipeExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
+            // Dish name (free text)
+            OutlinedTextField(
+                value = claim.recipeName ?: "",
+                onValueChange = { onDishNameChanged(it) },
+                label = { Text("Dish *") },
+                placeholder = { Text("e.g. Spaghetti Bolognese") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             // Day of week + meal time side by side
             Row(

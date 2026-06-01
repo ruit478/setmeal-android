@@ -122,12 +122,12 @@ class OverrideViewModel @Inject constructor(
         }
     }
 
-    fun updateClaimRecipe(claimId: String, recipe: RecipeEntity) {
+    fun updateClaimDishName(claimId: String, dishName: String) {
         _uiState.update { state ->
             state.copy(
                 claims = state.claims.map { claim ->
                     if (claim.id == claimId)
-                        claim.copy(recipeId = recipe.id, recipeName = recipe.name)
+                        claim.copy(recipeId = null, recipeName = dishName)
                     else claim
                 }
             )
@@ -231,7 +231,9 @@ class OverrideViewModel @Inject constructor(
     fun save() {
         val state = _uiState.value
 
-        val invalidClaims = state.claims.filter { it.recipeId == null }
+        val invalidClaims = state.claims.filter {
+            it.recipeName.isNullOrBlank()
+        }
         if (invalidClaims.isNotEmpty()) {
             _uiState.update {
                 it.copy(error = "All meals need a dish selected")
