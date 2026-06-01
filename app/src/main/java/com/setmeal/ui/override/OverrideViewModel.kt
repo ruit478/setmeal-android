@@ -198,7 +198,7 @@ class OverrideViewModel @Inject constructor(
 
                 val slotEntities = mutableListOf<SlotEntity>()
                 var sortOrder = 0
-
+                val allRecipes = recipes.associateBy { it.name.lowercase() }
                 for ((day, mealTime) in allSlots) {
                     if (portionPool.isNotEmpty()) {
                         // Place a user-claimed portion
@@ -210,7 +210,7 @@ class OverrideViewModel @Inject constructor(
                                 dayOfWeek = day,
                                 mealTime = mealTime,
                                 slotType = "claimed",
-                                recipeId = null,
+                                recipeId = allRecipes[name.lowercase()]?.id,
                                 recipeName = name,
                                 batchGroup = null,
                                 batchTotal = null,
