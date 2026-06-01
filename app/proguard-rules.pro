@@ -1,3 +1,3 @@
 # Setmeal ProGuard rules
 -keepattributes *Annotation*
--keep class com.setmeal.data.db.entity.** { *; }
+-keep class com.weekmenu.data.db.entity.** { *; }

@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.setmeal"
+    namespace = "com.weekmenu"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.setmeal"
+        applicationId = "com.weekmenu"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
