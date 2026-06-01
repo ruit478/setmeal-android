@@ -36,7 +36,7 @@ class WeekViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _currentWeekStart.value.plusDays(6))
 
     private val currentPlan: Flow<WeeklyPlanEntity?> = _currentWeekStart
-        .switchMap { weekStart ->
+        .flatMapLatest { weekStart ->
             weeklyPlanDao.getPlanByWeekStart(weekStart.toString())
         }
 
