@@ -14,7 +14,7 @@ interface WeeklyPlanDao {
     fun getCurrentPlan(): Flow<WeeklyPlanEntity?>
 
     @Query("SELECT * FROM weekly_plans WHERE weekStart = :weekStart LIMIT 1")
-    suspend fun getPlanByWeekStart(weekStart: String): WeeklyPlanEntity?
+    fun getPlanByWeekStart(weekStart: String): Flow<WeeklyPlanEntity?>
 
     @Query("SELECT * FROM slots WHERE planId = :planId ORDER BY dayOfWeek ASC, sortOrder ASC")
     fun getSlotsForPlan(planId: String): Flow<List<SlotEntity>>

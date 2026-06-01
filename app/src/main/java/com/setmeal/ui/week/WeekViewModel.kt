@@ -16,13 +16,10 @@ import javax.inject.Inject
 
 data class WeekSummary(
     val dayOfWeek: Int,          // 0=Mon..6=Sun
- val mealTime: String,        // "lunch" or "dinner" (DB values)
+    val mealTime: String,        // "lunch" or "dinner"
     val recipeId: String?,
     val recipeName: String?,
-    val slotType: String?,       // "claimed", "auto_fill", "work", "leftover", or null for empty
-    val batchGroup: Int?,
-    val batchTotal: Int?,
-    val hasBatch: Boolean = batchGroup != null
+    val slotType: String?        // "claimed", "auto_fill", "work", or null for empty
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -38,9 +35,8 @@ class WeekViewModel @Inject constructor(
         .map { it.plusDays(6) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _currentWeekStart.value.plusDays(6))
 
-    /** The current plan loaded for the selected week, or null if none exists. */
     private val currentPlan: Flow<WeeklyPlanEntity?> = _currentWeekStart
-        .mapLatest { weekStart ->
+        .switchMap { weekStart ->
             weeklyPlanDao.getPlanByWeekStart(weekStart.toString())
         }
 
@@ -48,7 +44,6 @@ class WeekViewModel @Inject constructor(
         .map { it != null }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    /** Raw slots flow for the current plan. */
     private val allSlots: StateFlow<List<SlotEntity>> = currentPlan
         .flatMapLatest { plan ->
             if (plan != null) {
@@ -59,11 +54,6 @@ class WeekViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /**
-     * Complete 14-cell grid (7 days × 2 meals).
-     * Ordered: lunch Mon-Sun (indices 0-6), then dinner Mon-Sun (indices 7-13).
-     * Every possible cell is represented; empty cells have null recipe/slotType.
-     */
     val weekGrid: StateFlow<List<WeekSummary>> = allSlots
         .map { slots ->
             val slotMap = slots.associateBy { "${it.dayOfWeek}_${it.mealTime}" }
@@ -79,9 +69,7 @@ class WeekViewModel @Inject constructor(
                                 mealTime = meal,
                                 recipeId = slot?.recipeId,
                                 recipeName = slot?.recipeName,
-                                slotType = slot?.slotType,
-                                batchGroup = slot?.batchGroup,
-                                batchTotal = slot?.batchTotal
+                                slotType = slot?.slotType
                             )
                         )
                     }
@@ -89,16 +77,6 @@ class WeekViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    /** Whether the current week has any slots with batch groups (claimed+batched). */
-    val hasBatchRecipes: StateFlow<Boolean> = allSlots
-        .map { slots -> slots.any { it.batchGroup != null } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-
-    /** The plan ID for the current week, needed for batch navigation. */
-    val currentPlanId: StateFlow<String?> = currentPlan
-        .map { it?.id }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun previousWeek() {
         _currentWeekStart.value = _currentWeekStart.value.minusWeeks(1)

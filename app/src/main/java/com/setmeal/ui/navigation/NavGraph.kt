@@ -21,8 +21,7 @@ fun NavGraph(navController: NavHostController) {
     ) {
         composable(Routes.WEEK) {
             WeekOverviewScreen(
-                onNavigateToOverride = { navController.navigate(Routes.OVERRIDE_FORM) },
-                onNavigateToBatch = { planId -> navController.navigate(Routes.batchView(planId)) }
+                onNavigateToOverride = { navController.navigate(Routes.OVERRIDE_FORM) }
             )
         }
 
@@ -56,10 +55,6 @@ fun NavGraph(navController: NavHostController) {
                 navController = navController,
                 recipeId = recipeId
             )
-        }
-
-        composable(Routes.BATCH_VIEW) {
-            // TODO Phase 5: BatchViewScreen
         }
     }
 }

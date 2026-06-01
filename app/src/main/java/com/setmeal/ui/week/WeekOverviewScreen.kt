@@ -23,52 +23,23 @@ import java.time.LocalDate
 
 private val dayLabels = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
 
-/** Pastel-ish tints shared by batch groups. */
-private val batchTints = listOf(
-    Color(0xFFA5D6A7), // soft green
-    Color(0xFF90CAF9), // soft blue
-    Color(0xFFFFCC80), // soft orange
-    Color(0xFFCE93D8), // soft purple
-    Color(0xFF80DEEA), // soft cyan
-    Color(0xFFF48FB1), // soft pink
-)
-
-/** Background for work-typed slots. */
-private val workBackground = Color(0xFFE0E0E0)
-
-/** Empty-cell background. */
 private val emptyBackground = Color(0xFFF5F5F5)
 
 @Composable
 fun WeekOverviewScreen(
     onNavigateToOverride: () -> Unit,
-    onNavigateToBatch: (String) -> Unit,
-    onNavigateToRecipeDetail: (String) -> Unit = {},
     viewModel: WeekViewModel = hiltViewModel()
 ) {
     val weekStart by viewModel.currentWeekStart.collectAsStateWithLifecycle()
     val weekEnd by viewModel.weekEnd.collectAsStateWithLifecycle()
     val hasPlan by viewModel.hasPlan.collectAsStateWithLifecycle()
     val weekGrid by viewModel.weekGrid.collectAsStateWithLifecycle()
-    val hasBatchRecipes by viewModel.hasBatchRecipes.collectAsStateWithLifecycle()
-    val currentPlanId by viewModel.currentPlanId.collectAsStateWithLifecycle()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        floatingActionButton = {
-            if (hasBatchRecipes && currentPlanId != null) {
-                ExtendedFloatingActionButton(
-                    onClick = { onNavigateToBatch(currentPlanId!!) },
-                    icon = { Icon(Icons.Default.Restaurant, contentDescription = null) },
-                    text = { Text("Batch Cooking") },
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                )
-            }
-        }
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -159,7 +130,6 @@ fun WeekOverviewScreen(
                             handleCellClick(
                                 summary = summary,
                                 onNavigateToOverride = onNavigateToOverride,
-                                onNavigateToRecipeDetail = onNavigateToRecipeDetail,
                                 snackbarHostState = snackbarHostState,
                                 scope = scope
                             )
@@ -173,7 +143,6 @@ fun WeekOverviewScreen(
                             handleCellClick(
                                 summary = summary,
                                 onNavigateToOverride = onNavigateToOverride,
-                                onNavigateToRecipeDetail = onNavigateToRecipeDetail,
                                 snackbarHostState = snackbarHostState,
                                 scope = scope
                             )
@@ -190,15 +159,6 @@ fun WeekOverviewScreen(
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (hasBatchRecipes && currentPlanId != null) {
-                        OutlinedButton(
-                            onClick = { onNavigateToBatch(currentPlanId!!) },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Batch")
-                        }
-                    }
-
                     Button(
                         onClick = onNavigateToOverride,
                         modifier = Modifier.weight(1f)
@@ -269,16 +229,8 @@ private fun WeekCell(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isEmpty = summary.slotType == null || summary.recipeId == null
-    val isWorkSlot = summary.slotType == "work"
-    val isBatch = summary.batchGroup != null
-
-    val bgColor = when {
-        isEmpty -> emptyBackground
-        isWorkSlot -> workBackground
-        isBatch -> batchTints[summary.batchGroup!! % batchTints.size]
-        else -> MaterialTheme.colorScheme.surfaceContainerHighest
-    }
+    val isEmpty = summary.slotType == null
+    val bgColor = if (isEmpty) emptyBackground else MaterialTheme.colorScheme.surfaceContainerHighest
 
     Surface(
         modifier = modifier
@@ -288,37 +240,27 @@ private fun WeekCell(
         color = bgColor,
         tonalElevation = if (isEmpty) 0.dp else 2.dp
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(4.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            contentAlignment = Alignment.Center
         ) {
-            // Recipe name (truncated, 1 line)
-            Text(
-                text = if (isEmpty) "" else (summary.recipeName ?: ""),
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = if (isEmpty) Color.Transparent else Color.Black
-            )
-
-            // Badge
-            val badgeText = badgeFor(summary)
-            if (badgeText.isNotEmpty()) {
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = badgeColorFor(summary),
-                    tonalElevation = 1.dp
-                ) {
-                    Text(
-                        text = badgeText,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        maxLines = 1,
-                        color = Color.Black.copy(alpha = 0.7f)
-                    )
-                }
+            if (isEmpty) {
+                Text(
+                    text = "+",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 14.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                )
+            } else {
+                Text(
+                    text = summary.recipeName ?: "",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black
+                )
             }
         }
     }
@@ -328,43 +270,6 @@ private fun WeekCell(
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-private fun badgeFor(summary: WeekSummary): String {
-    if (summary.slotType == null) return "+" // completely empty slot
-    if (summary.recipeId == null) {
-        // Slot exists but no recipe assigned
-        return if (summary.slotType == "work") "-" else "+"
-    }
-    return when (summary.slotType) {
-        "auto_fill" -> "Auto"
-        "claimed" -> {
-            if (summary.batchGroup != null) {
-                "Batch ${summary.batchGroup}/${summary.batchTotal ?: "?"}"
-            } else {
-                "Cooked"
-            }
-        }
-        "work" -> "Office"
-        "leftover" -> "Leftover"
-        else -> ""
-    }
-}
-
-private fun badgeColorFor(summary: WeekSummary): Color {
-    return when (summary.slotType) {
-        "auto_fill" -> Color(0xFFBBDEFB) // light blue
-        "claimed" -> {
-            if (summary.batchGroup != null) {
-                batchTints[summary.batchGroup % batchTints.size]
-            } else {
-                Color(0xFFC8E6C9) // light green
-            }
-        }
-        "work" -> Color(0xFFFFF9C4) // light yellow
-        "leftover" -> Color(0xFFE1BEE7) // light purple
-        else -> Color(0xFFE0E0E0) // grey (empty)
-    }
-}
-
 private fun buildWeekLabel(start: LocalDate, end: LocalDate): String {
     val sf = WeekViewModel.WEEK_FORMATTER
     return "${start.format(sf)} - ${end.format(sf)}"
@@ -373,23 +278,20 @@ private fun buildWeekLabel(start: LocalDate, end: LocalDate): String {
 private fun handleCellClick(
     summary: WeekSummary,
     onNavigateToOverride: () -> Unit,
-    onNavigateToRecipeDetail: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     scope: kotlinx.coroutines.CoroutineScope
 ) {
-    if (summary.slotType == null || summary.recipeId == null) {
+    if (summary.slotType == null) {
         // Empty cell → navigate to OverrideForm
         onNavigateToOverride()
     } else {
         // Filled cell → show recipe name in snackbar
-        val name = summary.recipeName ?: summary.recipeId ?: "Recipe"
+        val name = summary.recipeName ?: "Meal"
         scope.launch {
             snackbarHostState.showSnackbar(
                 message = name,
                 duration = SnackbarDuration.Short
             )
         }
-        // To navigate to recipe detail instead, uncomment:
-        // onNavigateToRecipeDetail(summary.recipeId!!)
     }
 }

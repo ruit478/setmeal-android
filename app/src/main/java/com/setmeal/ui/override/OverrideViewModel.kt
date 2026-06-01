@@ -60,7 +60,7 @@ class OverrideViewModel @Inject constructor(
 
     private fun checkExistingPlan(weekStart: LocalDate) {
         viewModelScope.launch {
-            val existingPlan = weeklyPlanDao.getPlanByWeekStart(weekStart.toString())
+            val existingPlan = weeklyPlanDao.getPlanByWeekStart(weekStart.toString()).first()
             if (existingPlan != null) {
                 val slots = weeklyPlanDao.getSlotsForPlanList(existingPlan.id)
 
@@ -160,7 +160,7 @@ class OverrideViewModel @Inject constructor(
                 val isoWeek = state.weekStart.get(WeekFields.ISO.weekOfWeekBasedYear())
 
                 // Find or create plan
-                var plan = weeklyPlanDao.getPlanByWeekStart(weekStartStr)
+                var plan = weeklyPlanDao.getPlanByWeekStart(weekStartStr).first()
                 val planId: String
 
                 if (plan != null) {
@@ -203,9 +203,6 @@ class OverrideViewModel @Inject constructor(
                     if (portionPool.isNotEmpty()) {
                         // Place a user-claimed portion
                         val (name, claimIdx) = portionPool.removeAt(0)
-                        val claimPortions = state.claims[claimIdx].portionCount
-                        val batchGroup: Int? = if (claimPortions > 1) (claimIdx + 1) else null
-                        val batchTotal: Int? = if (claimPortions > 1) claimPortions else null
 
                         slotEntities.add(
                             SlotEntity(
@@ -215,8 +212,8 @@ class OverrideViewModel @Inject constructor(
                                 slotType = "claimed",
                                 recipeId = null,
                                 recipeName = name,
-                                batchGroup = batchGroup,
-                                batchTotal = batchTotal,
+                                batchGroup = null,
+                                batchTotal = null,
                                 sortOrder = sortOrder++
                             )
                         )

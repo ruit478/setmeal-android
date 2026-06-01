@@ -60,7 +60,7 @@ class GroceryViewModel @Inject constructor(
 
     private fun loadAutoItems() {
         viewModelScope.launch {
-            val plan = weeklyPlanDao.getPlanByWeekStart(weekStart.toString())
+            val plan = weeklyPlanDao.getPlanByWeekStart(weekStart.toString()).first()
             if (plan == null) {
                 _autoItems.value = emptyList()
                 return@launch
