@@ -17,10 +17,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 
-private val dayLabels = listOf(
-    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
-)
-
 private val dayShortLabels = listOf(
     "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
 )
@@ -140,9 +136,7 @@ fun OverrideFormScreen(
                 ClaimCard(
                     index = index,
                     claim = claim,
-                    workDays = uiState.workDays,
                     onDishNameChanged = { viewModel.updateClaimDishName(claim.id, it) },
-                    onDayChanged = { viewModel.updateClaimDayOfWeek(claim.id, it) },
                     onMealChanged = { viewModel.updateClaimMealTime(claim.id, it) },
                     onPortionCountChanged = { viewModel.updateClaimPortionCount(claim.id, it) },
                     onDelete = { viewModel.removeClaim(claim.id) }
@@ -192,9 +186,7 @@ fun OverrideFormScreen(
 private fun ClaimCard(
     index: Int,
     claim: Claim,
-    workDays: Set<Int>,
     onDishNameChanged: (String) -> Unit,
-    onDayChanged: (Int) -> Unit,
     onMealChanged: (String) -> Unit,
     onPortionCountChanged: (Int) -> Unit,
     onDelete: () -> Unit
@@ -240,52 +232,14 @@ private fun ClaimCard(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Day of week + meal time side by side
+            // Meal time + Portions side by side
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Day of week dropdown
-                var dayExpanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = dayExpanded,
-                    onExpandedChange = { dayExpanded = it },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    OutlinedTextField(
-                        value = dayLabels.getOrElse(claim.dayOfWeek) { "?" },
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Day") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(dayExpanded) },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = dayExpanded,
-                        onDismissRequest = { dayExpanded = false }
-                    ) {
-                        dayLabels.forEachIndexed { dayIndex, label ->
-                            DropdownMenuItem(
-                                text = { Text(label) },
-                                onClick = {
-                                    onDayChanged(dayIndex)
-                                    dayExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                // Meal time dropdown (filtered by work day)
+                // Meal time dropdown
                 var mealExpanded by remember { mutableStateOf(false) }
-                val availableMeals = if (claim.dayOfWeek in workDays) {
-                    mealOptions.filter { it.first == "dinner" }
-                } else {
-                    mealOptions
-                }
-
                 ExposedDropdownMenuBox(
                     expanded = mealExpanded,
                     onExpandedChange = { mealExpanded = it },
@@ -307,7 +261,7 @@ private fun ClaimCard(
                         expanded = mealExpanded,
                         onDismissRequest = { mealExpanded = false }
                     ) {
-                        availableMeals.forEach { (key, label) ->
+                        mealOptions.forEach { (key, label) ->
                             DropdownMenuItem(
                                 text = { Text(label) },
                                 onClick = {
@@ -318,49 +272,40 @@ private fun ClaimCard(
                         }
                     }
                 }
-            }
 
-            // Portion counter
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Portions",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                FilledIconButton(
-                    onClick = { onPortionCountChanged(claim.portionCount - 1) },
-                    modifier = Modifier.size(36.dp),
-                    enabled = claim.portionCount > 1
+                // Portion counter
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text("−", fontWeight = FontWeight.Bold)
-                }
+                    FilledIconButton(
+                        onClick = { onPortionCountChanged(claim.portionCount - 1) },
+                        modifier = Modifier.size(36.dp),
+                        enabled = claim.portionCount > 1
+                    ) {
+                        Text("−", fontWeight = FontWeight.Bold)
+                    }
 
-                Text(
-                    text = "${claim.portionCount}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.width(24.dp),
-                    textAlign = TextAlign.Center
-                )
+                    Text(
+                        text = "${claim.portionCount}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.width(24.dp),
+                        textAlign = TextAlign.Center
+                    )
 
-                Text(
-                    text = "/N",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                    Text(
+                        text = "/N",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-                FilledIconButton(
-                    onClick = { onPortionCountChanged(claim.portionCount + 1) },
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Text("+", fontWeight = FontWeight.Bold)
+                    FilledIconButton(
+                        onClick = { onPortionCountChanged(claim.portionCount + 1) },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text("+", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
