@@ -1,0 +1,212 @@
+[
+  {
+    "name": "Bifinhos com cogumelos com arroz e massa",
+    "category": "carne",
+    "ingredients": [
+      { "name": "bifinhos de vaca", "quantity": "500g", "category": "carne" },
+      { "name": "cogumelos", "quantity": "200g", "category": "vegetais" },
+      { "name": "arroz", "quantity": "300g", "category": "mercearia" },
+      { "name": "massa (esparguete/taglierini)", "quantity": "200g", "category": "mercearia" },
+      { "name": "cebola", "quantity": "1", "category": "vegetais" },
+      { "name": "alho", "quantity": "3 dentes", "category": "vegetais" },
+      { "name": "natas", "quantity": "opcional", "category": "laticinios" },
+      { "name": "molho de soja", "quantity": "opcional", "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Fried Rice com tofu",
+    "category": "vegetariano",
+    "ingredients": [
+      { "name": "tofu", "quantity": "300g", "category": "mercearia" },
+      { "name": "arroz (do dia anterior)", "quantity": "300g", "category": "mercearia" },
+      { "name": "ervilhas", "quantity": "100g", "category": "congelados" },
+      { "name": "cenoura", "quantity": "1", "category": "vegetais" },
+      { "name": "cebola", "quantity": "1", "category": "vegetais" },
+      { "name": "ovo", "quantity": "2", "category": "laticinios" },
+      { "name": "molho de soja", "quantity": "3 colheres", "category": "mercearia" },
+      { "name": "óleo de sésamo", "quantity": "1 colher", "category": "mercearia" },
+      { "name": "alho", "quantity": "2 dentes", "category": "vegetais" },
+      { "name": "gengibre", "quantity": "1 pedaço", "category": "vegetais" }
+    ]
+  },
+  {
+    "name": "Massa Bolonhesa",
+    "category": "carne",
+    "ingredients": [
+      { "name": "massa (esparguete/spaghetti)", "quantity": "400g", "category": "mercearia" },
+      { "name": "carne picada (vaca/porco)", "quantity": "500g", "category": "carne" },
+      { "name": "tomate pelado / polpa de tomate", "quantity": "1 lata", "category": "mercearia" },
+      { "name": "cebola", "quantity": "1", "category": "vegetais" },
+      { "name": "alho", "quantity": "3 dentes", "category": "vegetais" },
+      { "name": "cenoura", "quantity": "1", "category": "vegetais" },
+      { "name": "azeite", "quantity": "2 colheres", "category": "mercearia" },
+      { "name": "sal", "quantity": null, "category": "mercearia" },
+      { "name": "pimenta", "quantity": null, "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Peitos de frango simples",
+    "category": "carne",
+    "ingredients": [
+      { "name": "peitos de frango", "quantity": "500g", "category": "carne" },
+      { "name": "azeite", "quantity": "2 colheres", "category": "mercearia" },
+      { "name": "sal", "quantity": null, "category": "mercearia" },
+      { "name": "pimenta", "quantity": null, "category": "mercearia" },
+      { "name": "ervas aromáticas (orégãos, alecrim)", "quantity": null, "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Gyozas",
+    "category": "carne",
+    "ingredients": [
+      { "name": "gyozas (congeladas)", "quantity": "400g", "category": "congelados" },
+      { "name": "molho de soja", "quantity": null, "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Shakshuka",
+    "category": "vegetariano",
+    "ingredients": [
+      { "name": "ovos", "quantity": "6", "category": "laticinios" },
+      { "name": "tomate enlatado / polpa de tomate", "quantity": "1 lata", "category": "mercearia" },
+      { "name": "pimento", "quantity": "1", "category": "vegetais" },
+      { "name": "cebola", "quantity": "1", "category": "vegetais" },
+      { "name": "alho", "quantity": "2 dentes", "category": "vegetais" },
+      { "name": "cominhos", "quantity": "1 colher", "category": "mercearia" },
+      { "name": "colorau / paprika", "quantity": "1 colher", "category": "mercearia" },
+      { "name": "azeite", "quantity": "2 colheres", "category": "mercearia" },
+      { "name": "pão (para acompanhar)", "quantity": null, "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Seitan na frigideira com molho de mostarda",
+    "category": "seitan",
+    "ingredients": [
+      { "name": "seitan", "quantity": "300g", "category": "mercearia" },
+      { "name": "mostarda", "quantity": "2 colheres", "category": "mercearia" },
+      { "name": "natas (ou alternativa vegetal)", "quantity": "200ml", "category": "laticinios" },
+      { "name": "cebola", "quantity": "1", "category": "vegetais" },
+      { "name": "alho", "quantity": "2 dentes", "category": "vegetais" },
+      { "name": "azeite", "quantity": "2 colheres", "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Seitan no forno com vinho branco",
+    "category": "seitan",
+    "ingredients": [
+      { "name": "seitan", "quantity": "300g", "category": "mercearia" },
+      { "name": "vinho branco", "quantity": "100ml", "category": "mercearia" },
+      { "name": "cebola", "quantity": "1", "category": "vegetais" },
+      { "name": "alho", "quantity": "2 dentes", "category": "vegetais" },
+      { "name": "azeite", "quantity": "2 colheres", "category": "mercearia" },
+      { "name": "ervas aromáticas", "quantity": null, "category": "mercearia" },
+      { "name": "batata (para acompanhar)", "quantity": "opcional", "category": "vegetais" }
+    ]
+  },
+  {
+    "name": "Frango com salada e molho iogurte",
+    "category": "carne",
+    "ingredients": [
+      { "name": "frango (peito ou perna)", "quantity": "500g", "category": "carne" },
+      { "name": "alface", "quantity": "1", "category": "vegetais" },
+      { "name": "tomate", "quantity": "2", "category": "vegetais" },
+      { "name": "pepino", "quantity": "1", "category": "vegetais" },
+      { "name": "iogurte natural", "quantity": "1", "category": "laticinios" },
+      { "name": "limão", "quantity": "1", "category": "fruta" },
+      { "name": "alho", "quantity": "1 dente", "category": "vegetais" },
+      { "name": "azeite", "quantity": "2 colheres", "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Homemade pizza",
+    "category": "carne",
+    "ingredients": [
+      { "name": "base de pizza (ou farinha + fermento + água)", "quantity": "1", "category": "mercearia" },
+      { "name": "molho de tomate", "quantity": "100ml", "category": "mercearia" },
+      { "name": "queijo mozzarella", "quantity": "200g", "category": "laticinios" },
+      { "name": "toppings (fiambre, cogumelos, frango, etc.)", "quantity": null, "category": "carne" }
+    ]
+  },
+  {
+    "name": "Hamburger",
+    "category": "carne",
+    "ingredients": [
+      { "name": "carne picada (vaca) / hambúrgueres", "quantity": "500g", "category": "carne" },
+      { "name": "pão de hambúrguer", "quantity": "4", "category": "mercearia" },
+      { "name": "queijo (cheddar/flamengo)", "quantity": "4 fatias", "category": "laticinios" },
+      { "name": "alface", "quantity": null, "category": "vegetais" },
+      { "name": "tomate", "quantity": "1", "category": "vegetais" },
+      { "name": "cebola", "quantity": "1", "category": "vegetais" },
+      { "name": "ketchup / mostarda / maionese", "quantity": null, "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Salada russa com grão e atum",
+    "category": "peixe",
+    "ingredients": [
+      { "name": "batata", "quantity": "500g", "category": "vegetais" },
+      { "name": "cenoura", "quantity": "2", "category": "vegetais" },
+      { "name": "ervilhas", "quantity": "100g", "category": "congelados" },
+      { "name": "atum (lata)", "quantity": "2 latas", "category": "mercearia" },
+      { "name": "grão-de-bico", "quantity": "1 lata", "category": "mercearia" },
+      { "name": "maionese", "quantity": "3 colheres", "category": "mercearia" },
+      { "name": "ovo cozido", "quantity": "2", "category": "laticinios" },
+      { "name": "sal", "quantity": null, "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Nuggets na air fryer",
+    "category": "air-fryer",
+    "ingredients": [
+      { "name": "nuggets de frango (congelados)", "quantity": "400g", "category": "congelados" }
+    ]
+  },
+  {
+    "name": "Falafel na air fryer",
+    "category": "air-fryer",
+    "ingredients": [
+      { "name": "falafel (congelados)", "quantity": "400g", "category": "congelados" },
+      { "name": "pão sírio / pita", "quantity": "opcional", "category": "mercearia" },
+      { "name": "molho (iogurte ou tahini)", "quantity": "opcional", "category": "laticinios" }
+    ]
+  },
+  {
+    "name": "Wraps do Mercadona na air fryer",
+    "category": "air-fryer",
+    "ingredients": [
+      { "name": "wraps do Mercadona (congelados)", "quantity": "400g", "category": "congelados" }
+    ]
+  },
+  {
+    "name": "Rolo de carne",
+    "category": "carne",
+    "ingredients": [
+      { "name": "carne picada (vaca/porco)", "quantity": "500g", "category": "carne" },
+      { "name": "cebola", "quantity": "1", "category": "vegetais" },
+      { "name": "alho", "quantity": "2 dentes", "category": "vegetais" },
+      { "name": "ovo", "quantity": "1", "category": "laticinios" },
+      { "name": "pão ralado", "quantity": "100g", "category": "mercearia" },
+      { "name": "polpa de tomate", "quantity": "3 colheres", "category": "mercearia" },
+      { "name": "cenoura", "quantity": "1", "category": "vegetais" },
+      { "name": "bacon/fiambre (para enrolar)", "quantity": "100g", "category": "carne" },
+      { "name": "sal", "quantity": null, "category": "mercearia" },
+      { "name": "pimenta", "quantity": null, "category": "mercearia" },
+      { "name": "noz-moscada", "quantity": null, "category": "mercearia" },
+      { "name": "azeite", "quantity": "2 colheres", "category": "mercearia" }
+    ]
+  },
+  {
+    "name": "Coxinhas de frango",
+    "category": "carne",
+    "ingredients": [
+      { "name": "coxinhas/pernas de frango", "quantity": "500g", "category": "carne" },
+      { "name": "cabeça de alho", "quantity": "1", "category": "vegetais" },
+      { "name": "limão", "quantity": "1", "category": "fruta" },
+      { "name": "azeite", "quantity": "3 colheres", "category": "mercearia" },
+      { "name": "sal", "quantity": null, "category": "mercearia" },
+      { "name": "pimenta", "quantity": null, "category": "mercearia" },
+      { "name": "colorau", "quantity": null, "category": "mercearia" },
+      { "name": "orégãos", "quantity": null, "category": "mercearia" }
+    ]
+  }
+]
