@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
@@ -22,9 +20,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.weekmenu.data.Categories
 
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-
 private fun displayCategory(key: String): String =
     Categories.GROCERY_LABELS[key.lowercase()] ?: key.replaceFirstChar { it.uppercase() }
 
@@ -40,31 +35,6 @@ fun GroceryListScreen(
     var showClearConfirmDialog by remember { mutableStateOf(false) }
     var selectedTabIndex by remember { mutableStateOf(0) }
     val context = LocalContext.current
-    val weekStart by viewModel.currentWeekStart.collectAsStateWithLifecycle()
-    val weekEnd by viewModel.weekEnd.collectAsStateWithLifecycle()
-
-    // ── Week navigation header ──
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = { viewModel.previousWeek() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous week")
-        }
-        TextButton(onClick = { viewModel.resetToCurrentWeek() }) {
-            Text(
-                text = buildWeekLabel(weekStart, weekEnd),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-        IconButton(onClick = { viewModel.nextWeek() }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next week")
-        }
-    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // ── Tab Row: From Plan / Manual ──
@@ -481,9 +451,4 @@ fun AddGroceryItemDialog(
             }
         }
     )
-}
-
-private fun buildWeekLabel(start: LocalDate, end: LocalDate): String {
-    val fmt = DateTimeFormatter.ofPattern("MMM d")
-    return "${start.format(fmt)} - ${end.format(fmt)}"
 }

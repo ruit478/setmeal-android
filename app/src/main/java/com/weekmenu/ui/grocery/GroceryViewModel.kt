@@ -50,32 +50,24 @@ class GroceryViewModel @Inject constructor(
     val manualItems: StateFlow<List<ManualGroceryItemEntity>> = groceryDao.getAllManualItems()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // ── Week navigation ──
+    // ── Auto items (reactive to plan AND slot changes — always current week) ──
 
-    private val _currentWeekStart = MutableStateFlow(getCurrentWeekStart())
-    val currentWeekStart: StateFlow<LocalDate> = _currentWeekStart.asStateFlow()
+    private val currentWeekStart: LocalDate =
+        LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
-    val weekEnd: StateFlow<LocalDate> = _currentWeekStart
-        .map { it.plusDays(6) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _currentWeekStart.value.plusDays(6))
-
-    // ── Auto items (reactive to plan AND slot changes) ──
-
-    val autoItems: StateFlow<List<AutoGroceryItem>> = _currentWeekStart
-        .flatMapLatest { weekStart ->
-            weeklyPlanDao.getPlanByWeekStart(weekStart.toString())
-                .flatMapLatest { plan ->
-                    if (plan == null) {
-                        flowOf(emptyList())
-                    } else {
-                        weeklyPlanDao.getSlotsForPlan(plan.id)
-                            .flatMapLatest { slots ->
-                                flow { emit(computeAutoItems(slots)) }
-                            }
-                    }
+    val autoItems: StateFlow<List<AutoGroceryItem>> =
+        weeklyPlanDao.getPlanByWeekStart(currentWeekStart.toString())
+            .flatMapLatest { plan ->
+                if (plan == null) {
+                    flowOf(emptyList())
+                } else {
+                    weeklyPlanDao.getSlotsForPlan(plan.id)
+                        .flatMapLatest { slots ->
+                            flow { emit(computeAutoItems(slots)) }
+                        }
                 }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Set of auto-item keys that have been checked by the user (ephemeral). */
     private val _checkedAutoKeys = MutableStateFlow<Set<String>>(emptySet())
@@ -120,26 +112,6 @@ class GroceryViewModel @Inject constructor(
             compareBy({ it.category }, { it.name })
         )
     }
-
-    // ── Week navigation ──
-
-    fun previousWeek() {
-        _currentWeekStart.value = _currentWeekStart.value.minusWeeks(1)
-        _checkedAutoKeys.value = emptySet()
-    }
-
-    fun nextWeek() {
-        _currentWeekStart.value = _currentWeekStart.value.plusWeeks(1)
-        _checkedAutoKeys.value = emptySet()
-    }
-
-    fun resetToCurrentWeek() {
-        _currentWeekStart.value = getCurrentWeekStart()
-        _checkedAutoKeys.value = emptySet()
-    }
-
-    private fun getCurrentWeekStart(): LocalDate =
-        LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
     // ── Manual item actions ──
 
