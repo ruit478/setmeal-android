@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 private val dayLabels = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
@@ -24,8 +23,6 @@ fun WeekOverviewScreen(
     onNavigateToOverride: (String) -> Unit,
     viewModel: WeekViewModel = hiltViewModel()
 ) {
-    val weekStart by viewModel.currentWeekStart.collectAsStateWithLifecycle()
-    val weekEnd by viewModel.weekEnd.collectAsStateWithLifecycle()
     val hasPlan by viewModel.hasPlan.collectAsStateWithLifecycle()
     val weekGrid by viewModel.weekGrid.collectAsStateWithLifecycle()
 
@@ -49,9 +46,9 @@ fun WeekOverviewScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // ── Week label (current week, no navigation) ──
+            // ── Week label ──
             Text(
-                text = buildWeekLabel(weekStart, weekEnd),
+                text = "Current Week",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -361,11 +358,4 @@ private fun MealRow(
             }
         }
     }
-}
-
-// ── Helpers ──────────────────────────────────────────────────────
-
-private fun buildWeekLabel(start: LocalDate, end: LocalDate): String {
-    val sf = WeekViewModel.WEEK_FORMATTER
-    return "${start.format(sf)} - ${end.format(sf)}"
 }
