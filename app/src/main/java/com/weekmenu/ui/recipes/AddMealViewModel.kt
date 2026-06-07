@@ -2,6 +2,7 @@ package com.weekmenu.ui.recipes
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.weekmenu.data.Categories
 import com.weekmenu.data.db.dao.RecipeDao
 import com.weekmenu.data.db.entity.IngredientEntity
 import com.weekmenu.data.db.entity.RecipeEntity
@@ -20,7 +21,7 @@ data class IngredientRow(
 
 data class AddMealUiState(
     val name: String = "",
-    val category: String = "carne",
+    val category: String = Categories.RECIPE.first(),
     val ingredients: List<IngredientRow> = listOf(IngredientRow()),
     val isSaving: Boolean = false,
     val error: String? = null,

@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.weekmenu.data.Categories
 import com.weekmenu.data.db.entity.IngredientEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -207,9 +208,9 @@ private fun ViewMode(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (recipe.lastUsedWeek != null) {
+                if (recipe.lastUsedDate != null) {
                     Text(
-                        text = "Last used: week ${recipe.lastUsedWeek}",
+                        text = "Last used: ${recipe.lastUsedDate}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -317,7 +318,7 @@ private fun EditMode(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    recipeCategories.forEach { cat ->
+                    Categories.RECIPE.forEach { cat ->
                         DropdownMenuItem(
                             text = { Text(cat.replaceFirstChar { it.uppercase() }) },
                             onClick = {
@@ -424,7 +425,7 @@ private fun EditMode(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
-                            ingredientCategories.forEach { cat ->
+                            Categories.INGREDIENT.forEach { cat ->
                                 DropdownMenuItem(
                                     text = { Text(cat.replaceFirstChar { it.uppercase() }) },
                                     onClick = {

@@ -22,9 +22,10 @@ import kotlinx.coroutines.launch
         GroceryItemEntity::class,
         ManualGroceryItemEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun recipeDao(): RecipeDao
     abstract fun weeklyPlanDao(): WeeklyPlanDao
@@ -38,7 +39,8 @@ abstract class AppDatabase : RoomDatabase() {
                 context.applicationContext,
                 AppDatabase::class.java,
                 DB_NAME
-            ).build()
+            ).fallbackToDestructiveMigration()
+            .build()
 
             // Seed data on first launch
             scope.launch(Dispatchers.IO) {

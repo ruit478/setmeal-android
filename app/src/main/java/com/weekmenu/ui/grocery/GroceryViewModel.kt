@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.weekmenu.data.Categories
 import com.weekmenu.data.db.dao.GroceryDao
 import com.weekmenu.data.db.dao.RecipeDao
 import com.weekmenu.data.db.dao.WeeklyPlanDao
@@ -36,78 +37,108 @@ class GroceryViewModel @Inject constructor(
     private val recipeDao: RecipeDao
 ) : ViewModel() {
 
+    companion object {
+        /** Ingredients that are assumed always available — skipped from auto-generated list. */
+        private val PANTRY_STAPLES = setOf(
+            "sal", "pimenta", "azeite", "esparguete", "arroz"
+        )
+    }
+
     // ── Manual items (persisted in DB) ──
 
     val manualItems: StateFlow<List<ManualGroceryItemEntity>> = groceryDao.getAllManualItems()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // ── Auto items (computed from current week plan) ──
+    // ── Week navigation ──
 
-    /** The start of the current week (Monday). */
-    private val weekStart: LocalDate = LocalDate.now()
-        .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+    private val _currentWeekStart = MutableStateFlow(getCurrentWeekStart())
+    val currentWeekStart: StateFlow<LocalDate> = _currentWeekStart.asStateFlow()
 
-    private val _autoItems = MutableStateFlow<List<AutoGroceryItem>>(emptyList())
-    val autoItems: StateFlow<List<AutoGroceryItem>> = _autoItems.asStateFlow()
+    val weekEnd: StateFlow<LocalDate> = _currentWeekStart
+        .map { it.plusDays(6) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _currentWeekStart.value.plusDays(6))
+
+    // ── Auto items (reactive to week changes) ──
+
+    val autoItems: StateFlow<List<AutoGroceryItem>> = _currentWeekStart
+        .flatMapLatest { weekStart -> loadAutoItemsForWeek(weekStart) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Set of auto-item keys that have been checked by the user (ephemeral). */
     private val _checkedAutoKeys = MutableStateFlow<Set<String>>(emptySet())
     val checkedAutoKeys: StateFlow<Set<String>> = _checkedAutoKeys.asStateFlow()
 
-    init {
-        loadAutoItems()
-    }
+    private fun loadAutoItemsForWeek(weekStart: LocalDate): Flow<List<AutoGroceryItem>> = flow {
+        val plan = weeklyPlanDao.getPlanByWeekStart(weekStart.toString()).first()
+        if (plan == null) {
+            emit(emptyList())
+            return@flow
+        }
 
-    private fun loadAutoItems() {
-        viewModelScope.launch {
-            val plan = weeklyPlanDao.getPlanByWeekStart(weekStart.toString()).first()
-            if (plan == null) {
-                _autoItems.value = emptyList()
-                return@launch
+        val slots = weeklyPlanDao.getSlotsForPlanList(plan.id)
+        val recipeIds = slots.mapNotNull { it.recipeId }.distinct()
+
+        // For each recipe, load ingredients and recipe name
+        val allIngredientSources = mutableListOf<Pair<IngredientEntity, String>>()
+        for (recipeId in recipeIds) {
+            val recipe = recipeDao.getRecipeById(recipeId)
+            val recipeName = recipe?.name ?: ""
+            val ingredients = recipeDao.getIngredientsForRecipe(recipeId)
+            for (ingredient in ingredients) {
+                allIngredientSources.add(ingredient to recipeName)
             }
+        }
 
-            val slots = weeklyPlanDao.getSlotsForPlanList(plan.id)
-            val recipeIds = slots.mapNotNull { it.recipeId }.distinct()
+        // Merge by name+category, filtering pantry staples
+        val merged = mutableMapOf<String, AutoGroceryItem>()
+        for ((ingredient, recipeName) in allIngredientSources) {
+            // Skip pantry staples
+            if (ingredient.name.lowercase().trim() in PANTRY_STAPLES) continue
 
-            // For each recipe, load ingredients and recipe name
-            val allIngredientSources = mutableListOf<Pair<IngredientEntity, String>>()
-            for (recipeId in recipeIds) {
-                val recipe = recipeDao.getRecipeById(recipeId)
-                val recipeName = recipe?.name ?: ""
-                val ingredients = recipeDao.getIngredientsForRecipe(recipeId)
-                for (ingredient in ingredients) {
-                    allIngredientSources.add(ingredient to recipeName)
-                }
+            val key = ingredient.name.lowercase() + "_" + ingredient.category
+            val existing = merged[key]
+            if (existing != null) {
+                val updatedSources = (existing.sourceRecipeNames + recipeName).distinct()
+                merged[key] = existing.copy(
+                    sourceRecipeNames = updatedSources,
+                    quantity = existing.quantity ?: ingredient.quantity
+                )
+            } else {
+                merged[key] = AutoGroceryItem(
+                    name = ingredient.name,
+                    quantity = ingredient.quantity,
+                    category = ingredient.category,
+                    sourceRecipeNames = listOfNotNull(recipeName.ifBlank { null })
+                )
             }
+        }
 
-            // Merge by name+category: sum quantities (take first if different) and aggregate source names
-            val merged = mutableMapOf<String, AutoGroceryItem>()
-            for ((ingredient, recipeName) in allIngredientSources) {
-                val key = ingredient.name.lowercase() + "_" + ingredient.category
-                val existing = merged[key]
-                if (existing != null) {
-                    // Update source recipe names (dedup)
-                    val updatedSources = (existing.sourceRecipeNames + recipeName).distinct()
-                    merged[key] = existing.copy(
-                        sourceRecipeNames = updatedSources,
-                        // Keep first quantity, or could try to merge numeric values
-                        quantity = existing.quantity ?: ingredient.quantity
-                    )
-                } else {
-                    merged[key] = AutoGroceryItem(
-                        name = ingredient.name,
-                        quantity = ingredient.quantity,
-                        category = ingredient.category,
-                        sourceRecipeNames = listOfNotNull(recipeName.ifBlank { null })
-                    )
-                }
-            }
-
-            _autoItems.value = merged.values.sortedWith(
+        emit(
+            merged.values.sortedWith(
                 compareBy({ it.category }, { it.name })
             )
-        }
+        )
     }
+
+    // ── Week navigation ──
+
+    fun previousWeek() {
+        _currentWeekStart.value = _currentWeekStart.value.minusWeeks(1)
+        _checkedAutoKeys.value = emptySet()
+    }
+
+    fun nextWeek() {
+        _currentWeekStart.value = _currentWeekStart.value.plusWeeks(1)
+        _checkedAutoKeys.value = emptySet()
+    }
+
+    fun resetToCurrentWeek() {
+        _currentWeekStart.value = getCurrentWeekStart()
+        _checkedAutoKeys.value = emptySet()
+    }
+
+    private fun getCurrentWeekStart(): LocalDate =
+        LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
 
     // ── Manual item actions ──
 
@@ -209,9 +240,8 @@ class GroceryViewModel @Inject constructor(
         }
 
         val grouped = allItems.groupBy { it.category }
-        val categoryOrder = listOf("meat", "vegetables", "pantry", "frozen", "dairy", "fruit", "other")
         val sortedCategories = grouped.keys.sortedBy { cat ->
-            val idx = categoryOrder.indexOf(cat.lowercase())
+            val idx = Categories.GROCERY.indexOf(cat.lowercase())
             if (idx >= 0) idx else 99
         }
 

@@ -330,6 +330,10 @@ private fun MealRow(
         else -> (summary.recipeName ?: "")
     }
 
+    val batchBadge = if (summary.batchGroup != null) {
+        if (summary.slotType == "leftover") "📦" else "🍳"
+    } else null
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         onClick = { if (!isWork) onClick() },
@@ -355,6 +359,13 @@ private fun MealRow(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
+            if (batchBadge != null) {
+                Text(
+                    text = batchBadge,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+            }
             when {
                 isWork -> {}
                 isEmpty -> {

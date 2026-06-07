@@ -25,7 +25,7 @@ interface RecipeDao {
     @Query("SELECT * FROM ingredients WHERE recipeId = :recipeId ORDER BY sortOrder ASC")
     fun getIngredientsForRecipeFlow(recipeId: String): Flow<List<IngredientEntity>>
 
-    @Query("SELECT * FROM recipes ORDER BY lastUsedWeek ASC")
+    @Query("SELECT * FROM recipes ORDER BY lastUsedDate ASC")
     suspend fun getRecipesByLeastRecentlyUsed(): List<RecipeEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

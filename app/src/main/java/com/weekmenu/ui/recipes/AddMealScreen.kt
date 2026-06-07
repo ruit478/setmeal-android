@@ -15,9 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-
-val recipeCategories = listOf("carne", "vegetariano", "air-fryer", "seitan", "peixe", "sopa", "outros")
-val ingredientCategories = listOf("carne", "vegetais", "mercearia", "congelados", "laticinios", "fruta", "outros")
+import com.weekmenu.data.Categories
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -110,7 +108,7 @@ fun AddMealScreen(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
                     ) {
-                        recipeCategories.forEach { cat ->
+                        Categories.RECIPE.forEach { cat ->
                             DropdownMenuItem(
                                 text = { Text(cat.replaceFirstChar { it.uppercase() }) },
                                 onClick = {
@@ -260,7 +258,7 @@ fun IngredientRowCard(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    ingredientCategories.forEach { cat ->
+                    Categories.INGREDIENT.forEach { cat ->
                         DropdownMenuItem(
                             text = { Text(cat.replaceFirstChar { it.uppercase() }) },
                             onClick = {

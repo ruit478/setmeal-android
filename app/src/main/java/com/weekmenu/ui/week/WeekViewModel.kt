@@ -20,7 +20,9 @@ data class WeekSummary(
     val slotId: String?,
     val recipeId: String?,
     val recipeName: String?,
-    val slotType: String?
+    val slotType: String?,
+    val batchGroup: Int? = null,
+    val batchTotal: Int? = null
 )
 
 data class DayMeals(
@@ -91,7 +93,9 @@ class WeekViewModel @Inject constructor(
                             slotId = lunch?.id,
                             recipeId = lunch?.recipeId,
                             recipeName = lunch?.recipeName,
-                            slotType = lunch?.slotType
+                            slotType = lunch?.slotType,
+                            batchGroup = lunch?.batchGroup,
+                            batchTotal = lunch?.batchTotal
                         )
                     )
                 }
@@ -102,7 +106,9 @@ class WeekViewModel @Inject constructor(
                         slotId = dinner?.id,
                         recipeId = dinner?.recipeId,
                         recipeName = dinner?.recipeName,
-                        slotType = dinner?.slotType
+                        slotType = dinner?.slotType,
+                        batchGroup = dinner?.batchGroup,
+                        batchTotal = dinner?.batchTotal
                     )
                 )
                 DayMeals(day, mealNames)

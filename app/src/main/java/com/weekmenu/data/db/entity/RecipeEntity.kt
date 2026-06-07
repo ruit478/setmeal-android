@@ -9,6 +9,6 @@ data class RecipeEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val name: String,
     val category: String,
-    val lastUsedWeek: Int? = null,
+    val lastUsedDate: String? = null, // ISO date (e.g. "2026-06-01")
     val cookCount: Int = 0
 )

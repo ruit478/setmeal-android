@@ -41,7 +41,7 @@ object SeedDataLoader {
             val recipeEntity = RecipeEntity(
                 name = seedRecipe.name,
                 category = seedRecipe.category,
-                lastUsedWeek = null,
+                lastUsedDate = null,
                 cookCount = 0
             )
             val ingredients = seedRecipe.ingredients.mapIndexed { i, ing ->
