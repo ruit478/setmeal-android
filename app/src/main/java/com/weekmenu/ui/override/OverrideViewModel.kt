@@ -43,6 +43,24 @@ class OverrideViewModel @Inject constructor(
     val uiState: StateFlow<OverrideUiState> = _uiState.asStateFlow()
 
     init {
+        initWeekStart()
+    }
+
+    /** Called from the screen to override the initial week start (from nav arg). */
+    fun setWeekStart(weekStartStr: String) {
+        try {
+            val parsed = LocalDate.parse(weekStartStr)
+            _uiState.update {
+                it.copy(weekStart = parsed, claims = emptyList(), workDays = emptySet())
+            }
+            checkExistingPlan(parsed)
+        } catch (_: Exception) {
+            // fallback to current week if parsing fails
+            initWeekStart()
+        }
+    }
+
+    private fun initWeekStart() {
         val weekStart = LocalDate.now()
             .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
         _uiState.update { it.copy(weekStart = weekStart) }

@@ -21,7 +21,7 @@ fun NavGraph(navController: NavHostController) {
     ) {
         composable(Routes.WEEK) {
             WeekOverviewScreen(
-                onNavigateToOverride = { navController.navigate(Routes.OVERRIDE_FORM) }
+                onNavigateToOverride = { weekStart -> navController.navigate(Routes.overrideForm(weekStart)) }
             )
         }
 
@@ -38,8 +38,15 @@ fun NavGraph(navController: NavHostController) {
             GroceryListScreen()
         }
 
-        composable(Routes.OVERRIDE_FORM) {
-            OverrideFormScreen(navController = navController)
+        composable(
+            route = Routes.OVERRIDE_FORM,
+            arguments = listOf(navArgument("weekStart") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val weekStart = backStackEntry.arguments?.getString("weekStart") ?: return@composable
+            OverrideFormScreen(
+                navController = navController,
+                weekStartStr = weekStart
+            )
         }
 
         composable(Routes.ADD_MEAL) {

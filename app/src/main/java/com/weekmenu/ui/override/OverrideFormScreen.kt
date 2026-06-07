@@ -27,9 +27,14 @@ private val dayShortLabels = listOf(
 @Composable
 fun OverrideFormScreen(
     navController: NavController,
+    weekStartStr: String,
     viewModel: OverrideViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(weekStartStr) {
+        viewModel.setWeekStart(weekStartStr)
+    }
 
     LaunchedEffect(uiState.savedSuccessfully) {
         if (uiState.savedSuccessfully) {

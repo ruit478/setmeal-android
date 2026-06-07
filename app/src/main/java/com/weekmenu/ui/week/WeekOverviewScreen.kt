@@ -24,7 +24,7 @@ private val dayLabels = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Fr
 
 @Composable
 fun WeekOverviewScreen(
-    onNavigateToOverride: () -> Unit,
+    onNavigateToOverride: (String) -> Unit,
     viewModel: WeekViewModel = hiltViewModel()
 ) {
     val weekStart by viewModel.currentWeekStart.collectAsStateWithLifecycle()
@@ -89,7 +89,7 @@ fun WeekOverviewScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = onNavigateToOverride) {
+                        Button(onClick = { onNavigateToOverride(weekStart.toString()) }) {
                             Text("Create plan")
                         }
                     }
@@ -127,7 +127,7 @@ fun WeekOverviewScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        onClick = onNavigateToOverride,
+                        onClick = { onNavigateToOverride(weekStart.toString()) },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Edit")

@@ -18,11 +18,12 @@ object Routes {
     const val GROCERY = "grocery"
     const val ADD_MEAL = "add_meal"
     const val RECIPE_DETAIL = "recipe_detail/{recipeId}"
-    const val OVERRIDE_FORM = "override_form"
+    const val OVERRIDE_FORM = "override_form/{weekStart}"
     const val BATCH_VIEW = "batch_view/{planId}"
 
     fun recipeDetail(recipeId: String) = "recipe_detail/$recipeId"
     fun batchView(planId: String) = "batch_view/$planId"
+    fun overrideForm(weekStart: String) = "override_form/$weekStart"
 }
 
 val bottomNavItems = listOf(
