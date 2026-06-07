@@ -19,9 +19,7 @@ import kotlinx.coroutines.launch
         RecipeEntity::class,
         IngredientEntity::class,
         WeeklyPlanEntity::class,
-        SlotEntity::class,
-        GroceryItemEntity::class,
-        ManualGroceryItemEntity::class
+        SlotEntity::class
     ],
     version = 2,
     exportSchema = false
