@@ -10,6 +10,7 @@ import com.weekmenu.data.db.dao.RecipeDao
 import com.weekmenu.data.db.dao.WeeklyPlanDao
 import com.weekmenu.data.db.entity.IngredientEntity
 import com.weekmenu.data.db.entity.ManualGroceryItemEntity
+import com.weekmenu.data.db.entity.SlotEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
@@ -58,27 +59,31 @@ class GroceryViewModel @Inject constructor(
         .map { it.plusDays(6) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _currentWeekStart.value.plusDays(6))
 
-    // ── Auto items (reactive to week changes) ──
+    // ── Auto items (reactive to plan AND slot changes) ──
 
     val autoItems: StateFlow<List<AutoGroceryItem>> = _currentWeekStart
-        .flatMapLatest { weekStart -> loadAutoItemsForWeek(weekStart) }
+        .flatMapLatest { weekStart ->
+            weeklyPlanDao.getPlanByWeekStart(weekStart.toString())
+                .flatMapLatest { plan ->
+                    if (plan == null) {
+                        flowOf(emptyList())
+                    } else {
+                        weeklyPlanDao.getSlotsForPlan(plan.id)
+                            .flatMapLatest { slots ->
+                                flow { emit(computeAutoItems(slots)) }
+                            }
+                    }
+                }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Set of auto-item keys that have been checked by the user (ephemeral). */
     private val _checkedAutoKeys = MutableStateFlow<Set<String>>(emptySet())
     val checkedAutoKeys: StateFlow<Set<String>> = _checkedAutoKeys.asStateFlow()
 
-    private fun loadAutoItemsForWeek(weekStart: LocalDate): Flow<List<AutoGroceryItem>> = flow {
-        val plan = weeklyPlanDao.getPlanByWeekStart(weekStart.toString()).first()
-        if (plan == null) {
-            emit(emptyList())
-            return@flow
-        }
-
-        val slots = weeklyPlanDao.getSlotsForPlanList(plan.id)
+    private suspend fun computeAutoItems(slots: List<SlotEntity>): List<AutoGroceryItem> {
         val recipeIds = slots.mapNotNull { it.recipeId }.distinct()
 
-        // For each recipe, load ingredients and recipe name
         val allIngredientSources = mutableListOf<Pair<IngredientEntity, String>>()
         for (recipeId in recipeIds) {
             val recipe = recipeDao.getRecipeById(recipeId)
@@ -89,10 +94,8 @@ class GroceryViewModel @Inject constructor(
             }
         }
 
-        // Merge by name+category, filtering pantry staples
         val merged = mutableMapOf<String, AutoGroceryItem>()
         for ((ingredient, recipeName) in allIngredientSources) {
-            // Skip pantry staples
             if (ingredient.name.lowercase().trim() in PANTRY_STAPLES) continue
 
             val key = ingredient.name.lowercase() + "_" + ingredient.category
@@ -113,10 +116,8 @@ class GroceryViewModel @Inject constructor(
             }
         }
 
-        emit(
-            merged.values.sortedWith(
-                compareBy({ it.category }, { it.name })
-            )
+        return merged.values.sortedWith(
+            compareBy({ it.category }, { it.name })
         )
     }
 
@@ -180,19 +181,16 @@ class GroceryViewModel @Inject constructor(
 
     // ── Clear ──
 
-    /** Delete all manual items from the database. */
     fun clearManualItems() {
         viewModelScope.launch {
             groceryDao.deleteAllManualItems()
         }
     }
 
-    /** Uncheck all auto-generated items (ephemeral — doesn't touch DB). */
     fun clearAutoChecks() {
         _checkedAutoKeys.value = emptySet()
     }
 
-    /** Clear both manual items and auto checkboxes. */
     fun clearAll() {
         viewModelScope.launch {
             groceryDao.deleteAllManualItems()
@@ -202,10 +200,6 @@ class GroceryViewModel @Inject constructor(
 
     // ── Share ──
 
-    /**
-     * Builds a plain-text grocery list from all unchecked items (manual + auto),
-     * grouped by category, formatted for sharing via Intent.
-     */
     fun generateShareText(): String {
         val uncheckedManual = manualItems.value.filter { !it.checked }
         val uncheckedAuto = autoItems.value.filter { it.key !in _checkedAutoKeys.value }
@@ -214,7 +208,6 @@ class GroceryViewModel @Inject constructor(
         sb.appendLine("Grocery List")
         sb.appendLine("============")
 
-        // Collect all items grouped by category
         val allItems = mutableListOf<GroupedItem>()
 
         for (item in uncheckedManual) {
@@ -259,7 +252,6 @@ class GroceryViewModel @Inject constructor(
         return sb.toString()
     }
 
-    /** Launches a share intent with the grocery list. */
     fun shareGroceryList(context: Context) {
         val text = generateShareText()
         val intent = Intent(Intent.ACTION_SEND).apply {
