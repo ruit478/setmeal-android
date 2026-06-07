@@ -147,14 +147,25 @@ class GroceryViewModel @Inject constructor(
         _checkedAutoKeys.value = current
     }
 
-    // ── Clear checked ──
+    // ── Clear ──
 
-    fun clearChecked(onlyManual: Boolean = true) {
+    /** Delete all manual items from the database. */
+    fun clearManualItems() {
         viewModelScope.launch {
-            groceryDao.clearCheckedManualItems()
-            if (!onlyManual) {
-                _checkedAutoKeys.value = emptySet()
-            }
+            groceryDao.deleteAllManualItems()
+        }
+    }
+
+    /** Uncheck all auto-generated items (ephemeral — doesn't touch DB). */
+    fun clearAutoChecks() {
+        _checkedAutoKeys.value = emptySet()
+    }
+
+    /** Clear both manual items and auto checkboxes. */
+    fun clearAll() {
+        viewModelScope.launch {
+            groceryDao.deleteAllManualItems()
+            _checkedAutoKeys.value = emptySet()
         }
     }
 

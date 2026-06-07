@@ -40,4 +40,7 @@ interface GroceryDao {
 
     @Query("DELETE FROM manual_grocery_items WHERE checked = 1")
     suspend fun clearCheckedManualItems()
+
+    @Query("DELETE FROM manual_grocery_items")
+    suspend fun deleteAllManualItems()
 }

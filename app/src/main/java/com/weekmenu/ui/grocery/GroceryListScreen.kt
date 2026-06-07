@@ -44,6 +44,7 @@ fun GroceryListScreen(
     val autoItems by viewModel.autoItems.collectAsStateWithLifecycle()
     val checkedAutoKeys by viewModel.checkedAutoKeys.collectAsStateWithLifecycle()
     var showAddDialog by remember { mutableStateOf(false) }
+    var showClearConfirmDialog by remember { mutableStateOf(false) }
     var selectedTabIndex by remember { mutableStateOf(0) }
     val context = LocalContext.current
 
@@ -169,10 +170,16 @@ fun GroceryListScreen(
             }
 
             OutlinedButton(
-                onClick = { viewModel.clearChecked(onlyManual = selectedTabIndex == 1) },
+                onClick = {
+                    if (selectedTabIndex == 0) {
+                        viewModel.clearAutoChecks()
+                    } else {
+                        showClearConfirmDialog = true
+                    }
+                },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Clear")
+                Text(if (selectedTabIndex == 0) "Uncheck all" else "Clear all")
             }
 
             Button(
@@ -192,6 +199,32 @@ fun GroceryListScreen(
             onConfirm = { name, quantity, category ->
                 viewModel.addManualItem(name, quantity, category)
                 showAddDialog = false
+            }
+        )
+    }
+
+    if (showClearConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirmDialog = false },
+            title = { Text("Clear all manual items?") },
+            text = { Text("This will delete all manual items from your list. This cannot be undone.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.clearManualItems()
+                        showClearConfirmDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Delete all")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearConfirmDialog = false }) {
+                    Text("Cancel")
+                }
             }
         )
     }

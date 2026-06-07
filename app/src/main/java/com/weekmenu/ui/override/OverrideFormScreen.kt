@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
@@ -39,9 +41,19 @@ fun OverrideFormScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Week of ${uiState.weekStart.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${uiState.weekStart.dayOfMonth}"
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { viewModel.previousWeek() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous week")
+                        }
+                        Text(
+                            "Week of ${uiState.weekStart.month.name.lowercase().replaceFirstChar { it.uppercase() }} ${uiState.weekStart.dayOfMonth}"
+                        )
+                        IconButton(onClick = { viewModel.nextWeek() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next week")
+                        }
+                    }
                 },
                 navigationIcon = {
                     TextButton(onClick = { navController.popBackStack() }) {
