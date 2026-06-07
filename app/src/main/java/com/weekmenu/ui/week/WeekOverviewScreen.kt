@@ -5,9 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,28 +49,13 @@ fun WeekOverviewScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // ── Week navigation header ──
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = { viewModel.previousWeek() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous week")
-                }
-
-                Text(
-                    text = buildWeekLabel(weekStart, weekEnd),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                IconButton(onClick = { viewModel.nextWeek() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next week")
-                }
-            }
+            // ── Week label (current week, no navigation) ──
+            Text(
+                text = buildWeekLabel(weekStart, weekEnd),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
 
             if (!hasPlan) {
                 Box(

@@ -116,14 +116,6 @@ class WeekViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun previousWeek() {
-        _currentWeekStart.value = _currentWeekStart.value.minusWeeks(1)
-    }
-
-    fun nextWeek() {
-        _currentWeekStart.value = _currentWeekStart.value.plusWeeks(1)
-    }
-
     /** Clear all slots for the current plan. */
     fun resetPlan() {
         viewModelScope.launch {
@@ -162,10 +154,6 @@ class WeekViewModel @Inject constructor(
             // Move source slot to target position
             weeklyPlanDao.updateSlotPosition(slotId, targetDay, targetMeal)
         }
-    }
-
-    fun resetToCurrentWeek() {
-        _currentWeekStart.value = getCurrentWeekStart()
     }
 
     private fun getCurrentWeekStart(): LocalDate {

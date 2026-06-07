@@ -73,21 +73,7 @@ class OverrideViewModel @Inject constructor(
         checkExistingPlan(weekStart)
     }
 
-    // ── Week navigation ──────────────────────────────────────────
-
-    fun nextWeek() {
-        val newWeekStart = _uiState.value.weekStart.plusWeeks(1)
-        _uiState.update { it.copy(weekStart = newWeekStart, claims = emptyList(), workDays = emptySet()) }
-        checkExistingPlan(newWeekStart)
-    }
-
-    fun previousWeek() {
-        val newWeekStart = _uiState.value.weekStart.minusWeeks(1)
-        _uiState.update { it.copy(weekStart = newWeekStart, claims = emptyList(), workDays = emptySet()) }
-        checkExistingPlan(newWeekStart)
-    }
-
-    // ── Existing plan loading ──────────────────────────────────────
+    // ── Work days ──────────────────────────────────────────────────
 
     private fun checkExistingPlan(weekStart: LocalDate) {
         viewModelScope.launch {
