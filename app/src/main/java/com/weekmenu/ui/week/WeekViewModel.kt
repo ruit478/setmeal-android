@@ -124,6 +124,18 @@ class WeekViewModel @Inject constructor(
         }
     }
 
+    fun previousWeek() {
+        _currentWeekStart.value = _currentWeekStart.value.minusWeeks(1)
+    }
+
+    fun nextWeek() {
+        _currentWeekStart.value = _currentWeekStart.value.plusWeeks(1)
+    }
+
+    fun resetToCurrentWeek() {
+        _currentWeekStart.value = getCurrentWeekStart()
+    }
+
     /**
      * Move a meal slot to a new (day, mealTime) position.
      * If the target position is occupied, the two slots swap positions.

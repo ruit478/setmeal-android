@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 private val dayLabels = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
@@ -47,13 +51,29 @@ fun WeekOverviewScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // ── Week label ──
-            Text(
-                text = "Current Week",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+            // ── Week navigation header ──
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { viewModel.previousWeek() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous week")
+                }
+
+                Text(
+                    text = weekNavLabel(weekStart, viewModel.weekEnd.value),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                IconButton(onClick = { viewModel.nextWeek() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next week")
+                }
+            }
+            HorizontalDivider()
 
             if (!hasPlan) {
                 Box(
@@ -257,6 +277,11 @@ private fun MoveMealDialog(
             }
         }
     )
+}
+
+private fun weekNavLabel(start: LocalDate, end: LocalDate): String {
+    val f = WeekViewModel.WEEK_FORMATTER
+    return "${start.format(f)} - ${end.format(f)}"
 }
 
 // ── Day card ─────────────────────────────────────────────────────
