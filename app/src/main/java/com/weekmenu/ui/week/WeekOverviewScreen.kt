@@ -110,7 +110,7 @@ fun WeekOverviewScreen(
                             meals = dayMeals.meals,
                             onMealClick = { summary ->
                                 when (summary.slotType) {
-                                    null -> onNavigateToOverride()
+                                    null -> onNavigateToOverride(weekStart.toString())
                                     "work" -> {}
                                     else -> mealToMove = summary
                                 }
