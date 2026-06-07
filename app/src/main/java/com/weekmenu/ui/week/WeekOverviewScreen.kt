@@ -23,6 +23,7 @@ fun WeekOverviewScreen(
     onNavigateToOverride: (String) -> Unit,
     viewModel: WeekViewModel = hiltViewModel()
 ) {
+    val weekStart by viewModel.currentWeekStart.collectAsStateWithLifecycle()
     val hasPlan by viewModel.hasPlan.collectAsStateWithLifecycle()
     val weekGrid by viewModel.weekGrid.collectAsStateWithLifecycle()
 
