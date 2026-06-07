@@ -240,7 +240,8 @@ class OverrideViewModel @Inject constructor(
                     val matchedRecipeId = allRecipes[claim.recipeName!!.lowercase()]?.id
                     if (matchedRecipeId != null) usedRecipeIds.add(matchedRecipeId)
 
-                    for ((i, (day, mealTime)) in batchSlots.withIndex()) {
+                    for ((i, slot) in batchSlots.withIndex()) {
+                        val (day, mealTime) = slot
                         emptySlots.remove(Pair(day, mealTime))
                         slotEntities.add(
                             SlotEntity(
