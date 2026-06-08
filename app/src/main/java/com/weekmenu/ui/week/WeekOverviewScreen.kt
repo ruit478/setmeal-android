@@ -28,6 +28,7 @@ fun WeekOverviewScreen(
     viewModel: WeekViewModel = hiltViewModel()
 ) {
     val weekStart by viewModel.currentWeekStart.collectAsStateWithLifecycle()
+    val weekEnd = remember(weekStart) { weekStart.plusDays(6) }
     val hasPlan by viewModel.hasPlan.collectAsStateWithLifecycle()
     val weekGrid by viewModel.weekGrid.collectAsStateWithLifecycle()
 
@@ -64,7 +65,7 @@ fun WeekOverviewScreen(
                 }
 
                 Text(
-                    text = weekNavLabel(weekStart, viewModel.weekEnd.value),
+                    text = weekNavLabel(weekStart, weekEnd),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )

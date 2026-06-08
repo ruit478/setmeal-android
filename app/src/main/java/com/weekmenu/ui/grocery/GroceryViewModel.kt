@@ -47,10 +47,6 @@ class GroceryViewModel @Inject constructor(
     private val _currentWeekStart = MutableStateFlow(getCurrentWeekStart())
     val currentWeekStart: StateFlow<LocalDate> = _currentWeekStart.asStateFlow()
 
-    val weekEnd: StateFlow<LocalDate> = _currentWeekStart
-        .map { it.plusDays(6) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _currentWeekStart.value.plusDays(6))
-
     private val currentPlan: Flow<WeeklyPlanEntity?> = _currentWeekStart
         .flatMapLatest { weekStart ->
             weeklyPlanDao.getPlanByWeekStart(weekStart.toString())

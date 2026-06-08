@@ -32,7 +32,7 @@ fun GroceryListScreen(
     val autoItems by viewModel.autoItems.collectAsStateWithLifecycle()
     val checkedKeys by viewModel.checkedKeys.collectAsStateWithLifecycle()
     val weekStart by viewModel.currentWeekStart.collectAsStateWithLifecycle()
-    val weekEnd by viewModel.weekEnd.collectAsStateWithLifecycle()
+    val weekEnd = remember(weekStart) { weekStart.plusDays(6) }
     val hasPlan by viewModel.hasPlan.collectAsStateWithLifecycle()
     val context = LocalContext.current
 

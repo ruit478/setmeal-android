@@ -39,10 +39,6 @@ class WeekViewModel @Inject constructor(
     private val _currentWeekStart = MutableStateFlow(getCurrentWeekStart())
     val currentWeekStart: StateFlow<LocalDate> = _currentWeekStart.asStateFlow()
 
-    val weekEnd: StateFlow<LocalDate> = _currentWeekStart
-        .map { it.plusDays(6) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _currentWeekStart.value.plusDays(6))
-
     private val currentPlan: Flow<WeeklyPlanEntity?> = _currentWeekStart
         .flatMapLatest { weekStart ->
             weeklyPlanDao.getPlanByWeekStart(weekStart.toString())
@@ -116,11 +112,10 @@ class WeekViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    /** Clear all slots for the current plan. */
     fun resetPlan() {
         viewModelScope.launch {
             val plan = currentPlan.first() ?: return@launch
-            weeklyPlanDao.deleteSlotsForPlan(plan.id)
+            weeklyPlanDao.deletePlanWithSlots(plan)
         }
     }
 
